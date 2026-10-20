@@ -1,0 +1,18 @@
+--- adb starting (pid 11224) ---
+10-11 16:26:31.307 11224 18692 I adb     : main.cpp:65 Android Debug Bridge version 1.0.41
+10-11 16:26:31.307 11224 18692 I adb     : main.cpp:65 Version 37.0.1-15733141
+10-11 16:26:31.307 11224 18692 I adb     : main.cpp:65 Installed as E:\音乐\档3实现\adb_tools\platform-tools\adb.exe
+10-11 16:26:31.307 11224 18692 I adb     : main.cpp:65 Running on Windows 10.0.26200
+10-11 16:26:31.307 11224 18692 I adb     : main.cpp:65 
+--- adb starting (pid 27408) ---
+10-11 16:26:47.099 27408 30936 I adb     : main.cpp:65 Android Debug Bridge version 1.0.41
+10-11 16:26:47.099 27408 30936 I adb     : main.cpp:65 Version 37.0.1-15733141
+10-11 16:26:47.099 27408 30936 I adb     : main.cpp:65 Installed as E:\音乐\档3实现\adb_tools\platform-tools\adb.exe
+10-11 16:26:47.099 27408 30936 I adb     : main.cpp:65 Running on Windows 10.0.26200
+10-11 16:26:47.099 27408 30936 I adb     : main.cpp:65 
+--- adb starting (pid 13992) ---
+10-11 16:27:00.608 13992 31184 I adb     : main.cpp:65 Android Debug Bridge version 1.0.41
+10-11 16:27:00.608 13992 31184 I adb     : main.cpp:65 Version 37.0.1-15733141
+10-11 16:27:00.608 13992 31184 I adb     : main.cpp:65 Installed as E:\音乐\档3实现\adb_tools\platform-tools\adb.exe
+10-11 16:27:00.608 13992 31184 I adb     : main.cpp:65 Running on Windows 10.0.26200
+10-11 16:27:00.608 13992 31184 I adb     : main.cpp:65 

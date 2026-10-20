@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>18 路逐片实测对照表 · 2026-10-11</title>
+<style>
+  :root{
+    --ink:#12263f; --ink2:#3b5570; --line:#d9e2ec; --bg:#ffffff;
+    --ok:#0f7b4f; --okbg:#e8f6ee; --bad:#b3261e; --badbg:#fdecea;
+    --warn:#8a5206; --warnbg:#fff6e5; --blue:#12467b; --bluebg:#eaf2fb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.7 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 32px 64px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:.3px}
+  .sub{color:var(--ink2);font-size:13.5px;margin-bottom:26px}
+  h2{font-size:18px;margin:36px 0 12px;padding-left:11px;border-left:4px solid var(--blue)}
+  .verdict{background:var(--bluebg);border:1px solid #c9ddf5;border-radius:12px;
+           padding:18px 20px;margin:18px 0 8px}
+  .verdict b{color:var(--blue)}
+  table{width:100%;border-collapse:collapse;margin:10px 0 6px;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#f4f7fb;color:var(--ink);font-weight:600;font-size:13.5px}
+  td.mono{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+  tr.ok td.v{color:var(--ok);font-weight:600;background:var(--okbg)}
+  tr.bad td.v{color:var(--bad);font-weight:600;background:var(--badbg)}
+  .tag{display:inline-block;padding:1px 7px;border-radius:999px;font-size:12px;font-weight:600}
+  .t-ok{background:var(--okbg);color:var(--ok)}
+  .t-bad{background:var(--badbg);color:var(--bad)}
+  .t-warn{background:var(--warnbg);color:var(--warn)}
+  code{background:#f2f5f9;padding:1px 6px;border-radius:5px;
+       font-family:ui-monospace,Consolas,monospace;font-size:13px;color:#1b3a5c}
+  pre{background:#0f2237;color:#e6eef8;padding:14px 16px;border-radius:10px;
+      overflow:auto;font-size:13px;line-height:1.6}
+  .note{background:var(--warnbg);border:1px solid #f0d5a0;border-radius:10px;
+        padding:14px 18px;margin:14px 0;font-size:14px;color:#5c3d05}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  ul{margin:8px 0 8px 18px;padding:0}
+  li{margin:4px 0}
+  .foot{margin-top:40px;padding-top:14px;border-top:1px solid var(--line);
+        color:var(--ink2);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>18 路逐片实测对照表</h1>
+  <div class="sub">《拨云》无障碍自动吉他 · 弦测日期 2026-10-11 21:20 · 方式：面板逐路点名，人工确认「实际动的是哪一片」</div>
+
+  <div class="verdict">
+    <b>结论：一根线都没插错。</b><br>
+    18 路实测结果 <b>100% 与 ESP32 固件（XIAOZHI profile）吻合</b>。
+    实物接线本来就是按固件表插的 —— 错的只有板上那份旧配置 <code>servo_config.csv</code>（V5.1）。
+    <br>⇒ <b>不需要拔任何一根线</b>，改两行配置即可。
+  </div>
+
+  <h2>一、实测全表</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:150px">页面卡片名<br><span style="font-weight:400;font-size:12px;color:#5b7699">（= 板上旧 csv 的猜测）</span></th>
+        <th style="width:90px">实际通道</th>
+        <th>实测：动的到底是哪一片</th>
+        <th style="width:110px">判定</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="ok"><td>弦1 · 品12组</td><td class="mono">PWM0</td><td class="v">舵机5 · 弦1品12</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="ok"><td>弦1 · 品34组</td><td class="mono">PCA15</td><td class="v">舵机6 · 弦1品34</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="ok"><td>弦2 · 品12组</td><td class="mono">PCA13</td><td class="v">舵机3 · 弦2品12</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="ok"><td>弦2 · 品34组</td><td class="mono">PCA11</td><td class="v">舵机4 · 弦2品34</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="ok"><td>弦3 · 品12组</td><td class="mono">PCA9</td><td class="v">舵机1 · 弦3品12</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="bad"><td>弦3 · 品34组</td><td class="mono">PCA2</td><td class="v">小舵机1 · <b>拨弦1</b></td><td><span class="tag t-bad">串了</span></td></tr>
+      <tr class="ok"><td>弦4 · 品12组</td><td class="mono">PWM1</td><td class="v">舵机7 · 弦4品12</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="ok"><td>弦4 · 品34组</td><td class="mono">PCA16</td><td class="v">舵机8 · 弦4品34</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="ok"><td>弦5 · 品12组</td><td class="mono">PCA14</td><td class="v">舵机9 · 弦5品12 <span class="tag t-warn">待确认</span></td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="ok"><td>弦5 · 品34组</td><td class="mono">PCA12</td><td class="v">舵机10 · 弦5品34</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="ok"><td>弦6 · 品12组</td><td class="mono">PCA10</td><td class="v">舵机11 · 弦6品12</td><td><span class="tag t-ok">一致</span></td></tr>
+      <tr class="bad"><td>弦6 · 品34组</td><td class="mono">PCA1</td><td class="v">小舵机4 · <b>拨弦4</b></td><td><span class="tag t-bad">串了</span></td></tr>
+      <tr class="bad"><td>拨弦1</td><td class="mono">PCA4</td><td class="v">小舵机2 · 拨弦2</td><td><span class="tag t-bad">串了</span></td></tr>
+      <tr class="bad"><td>拨弦2</td><td class="mono">PCA6</td><td class="v">小舵机3 · 拨弦3</td><td><span class="tag t-bad">串了</span></td></tr>
+      <tr class="bad"><td>拨弦3</td><td class="mono">PCA8</td><td class="v">舵机12 · <b>弦6品34（压弦）</b></td><td><span class="tag t-bad">串了</span></td></tr>
+      <tr class="bad"><td>拨弦4</td><td class="mono">PCA3</td><td class="v">小舵机5 · 拨弦5</td><td><span class="tag t-bad">串了</span></td></tr>
+      <tr class="bad"><td>拨弦5</td><td class="mono">PCA5</td><td class="v">小舵机6 · 拨弦6</td><td><span class="tag t-bad">串了</span></td></tr>
+      <tr class="bad"><td>拨弦6</td><td class="mono">PCA7</td><td class="v">舵机2 · <b>弦3品34（压弦）</b></td><td><span class="tag t-bad">串了</span></td></tr>
+    </tbody>
+  </table>
+  <p style="color:#3b5570;font-size:13.5px">
+    红行共 8 处「串了」——但这 8 处<b>不是接线错</b>，而是<b>纸上写错</b>：板上 csv 认为「PCA2 是弦3品34组」，
+    可现实里 PCA2 插的是拨弦1。固件也知道 PCA2 = 拨弦1。所以固件对、csv 错。
+  </p>
+
+  <h2>二、修法：改两行配置，不拔线</h2>
+  <div class="grid2">
+    <div>
+      <p style="margin:6px 0;font-weight:600">① 压弦 12 路（改 2 个格）</p>
+      <pre>chord_channel_mapping
+
+idx5  弦3品34组: PCA2  → PCA7
+idx11 弦6品34组: PCA1  → PCA8</pre>
+    </div>
+    <div>
+      <p style="margin:6px 0;font-weight:600">② 拨弦 6 路（整行替换）</p>
+      <pre>strum_channel_mapping
+
+旧: PCA4,PCA6,PCA8,PCA3,PCA5,PCA7
+新: PCA2,PCA4,PCA6,PCA1,PCA3,PCA5</pre>
+    </div>
+  </div>
+  <div class="note">
+    <b>为什么只改这两行就够？</b><br>
+    · 改完之后，「逻辑位 → 物理通道」与固件完全一致，<b>自动演奏与手动点名从此同一套编号</b>；<br>
+    · <code>null_offset / press_offsets / strum_angles</code> 这些标定值是<b>按逻辑位（弦+品）挂的</b>，不是按通道挂的 —— 通道一改对，它们自动跟着走，无需更动；<br>
+    · 改动前会先备份原文件，随时可回滚。
+  </div>
+
+  <h2>三、物理舵机号 ↔ 弦/品（本表已与 51 卡编号总表核对一致）</h2>
+  <table>
+    <thead><tr><th>舵机号</th><th>所管</th><th>舵机号</th><th>所管</th><th>舵机号</th><th>所管</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">5</td><td>弦1 品12组</td><td class="mono">3</td><td>弦2 品12组</td><td class="mono">1</td><td>弦3 品12组</td></tr>
+      <tr><td class="mono">6</td><td>弦1 品34组</td><td class="mono">4</td><td>弦2 品34组</td><td class="mono">2</td><td>弦3 品34组</td></tr>
+      <tr><td class="mono">7</td><td>弦4 品12组</td><td class="mono">9</td><td>弦5 品12组</td><td class="mono">11</td><td>弦6 品12组</td></tr>
+      <tr><td class="mono">8</td><td>弦4 品34组</td><td class="mono">10</td><td>弦5 品34组</td><td class="mono">12</td><td>弦6 品34组</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:13.5px;color:#3b5570">
+    拨弦小舵机：<b>1→弦1　2→弦2　3→弦3　4→弦4　5→弦5　6→弦6</b>
+  </p>
+
+  <h2>四、两处待你确认</h2>
+  <ul>
+    <li>「弦5·品12组」你写的是 <b>舵机8</b>，但 8 号已经是弦4品34组了 —— 这里应该是 <b>9 号</b>吧？</li>
+    <li>「弦6·品34组」你写的是 <b>小舵机4，拨弦34</b> —— 是「<b>拨弦4</b>」的意思吗？</li>
+  </ul>
+
+  <div class="foot">
+    资料《拨云》无障碍吉他改造 · 笔记 55 · 生成于 2026-10-11 21:22
+  </div>
+
+</div>
+</body>
+</html>

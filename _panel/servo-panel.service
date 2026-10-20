@@ -1,0 +1,13 @@
+[Unit]
+Description=BoYun Guitar Servo Calibration Panel (web)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/guitarist_app
+ExecStart=/usr/bin/python3 /root/guitarist_app/servo_panel.py 5002
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

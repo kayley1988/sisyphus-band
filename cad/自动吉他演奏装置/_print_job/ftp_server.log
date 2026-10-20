@@ -1,0 +1,11 @@
+FTP 服务已启动: ftp://192.168.1.29:21/  根目录=E:\音乐\档3实现\cad\自动吉他演奏装置\_print_job
+[I 2026-10-12 11:51:53] concurrency model: async
+[I 2026-10-12 11:51:53] masquerade (NAT) address: None
+[I 2026-10-12 11:51:53] passive ports: 60000->60049
+[I 2026-10-12 11:51:53] >>> starting FTP server on 0.0.0.0:21, pid=2696 <<<
+[I 2026-10-12 11:51:57] 127.0.0.1:57908-[] FTP session opened (connect)
+[11:51:57] 连接来自 127.0.0.1:57908
+[I 2026-10-12 11:51:57] 127.0.0.1:57908-[anonymous] USER 'anonymous' logged in.
+  登录: anonymous
+[I 2026-10-12 11:51:57] 127.0.0.1:57908-[anonymous] FTP session closed (disconnect).
+  断开

@@ -1,0 +1,21 @@
+[Unit]
+Description=Automatic Guitar Playing System
+After=network.target multi-user.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/guitarist_app
+# ── 无障碍吉他改造：每次启动前把 rk809 采集通路切到板载主麦克风 ──
+# （该声卡默认 'MIC OFF'，会导致语音识别录到全零；失败不阻塞主服务）
+ExecStartPre=-/usr/local/bin/mic-path-main.sh
+ExecStart=/usr/bin/python3 /root/guitarist_app/src/guitarist/run_with_system_log.py --project-root /root/guitarist_app --log-root /root/guitarist_app/logs
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

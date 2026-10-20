@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>54 · PCA 接线对表 · 两版差异与判定</title>
+<style>
+  :root{--ink:#1e1e1c;--muted:#5f5e5a;--line:#d8d6cc;--bg:#fbfaf7;--card:#fff;--red:#a32d2d;--amber:#854f0b;--blue:#185fa5;}
+  *{box-sizing:border-box}
+  body{margin:0;padding:28px 20px 60px;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.7}
+  .wrap{max-width:920px;margin:0 auto}
+  h1{font-size:21px;font-weight:600;margin:0 0 4px}
+  .meta{color:var(--muted);font-size:12.5px;margin-bottom:22px}
+  h2{font-size:16px;font-weight:600;margin:30px 0 10px;padding-left:9px;border-left:3px solid var(--blue)}
+  p{margin:8px 0}
+  .callout{background:#fff6e3;border:1px solid #f0d5a0;border-radius:10px;padding:12px 14px;margin:14px 0}
+  .callout.warn{background:#fdeceb;border-color:#f0b8b6}
+  .callout.ok{background:#eaf3de;border-color:#c0dd97}
+  table{border-collapse:collapse;width:100%;margin:12px 0;background:var(--card);font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 9px;text-align:left}
+  th{background:#f1efe8;font-weight:600}
+  td.mono,th.mono,code{font-family:ui-monospace,Consolas,monospace}
+  .bad{color:var(--red);font-weight:600}
+  .ok{color:#3b6d11}
+  .tag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:12px;border:1px solid var(--line);background:#fff}
+  ul{margin:8px 0;padding-left:22px}
+  li{margin:4px 0}
+  hr{border:0;border-top:1px solid var(--line);margin:26px 0}
+  .small{font-size:12.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>54 · PCA 接线对表 · 两版差异与判定</h1>
+<div class="meta">2026-10-11 · 目的：判定「该改软件、还是该拔线重插」</div>
+
+<h2>〇、一句话结论</h2>
+<p>板子固件自报 <code>board_id=3 · XIAOZHI</code>；板上软件 <code>servo_config.csv</code> 却是旧的 <b>V5.1</b> 表。
+两者在 <b class="bad">8 处</b>打架。先点 3 个孔判定你的线束属于哪一版，再决定做法——<b>有可能一根线都不用动</b>。</p>
+
+<div class="callout ok" style="border-left-color:#1a7f37;background:#eaf7ee">
+<b>✅ 2026-10-11 21:30 已结案 —— 结论：甲（线没问题，错的只有 csv）</b><br>
+18 路逐片点名实测全部完成，<b>18/18 与固件 XIAOZHI 表完全吻合</b> ⇒ 实物接线本来就是对的，<b>一根线都不用拔</b>。<br>
+已修：<code>chord_channel_mapping</code> idx5 <span class="bad">PCA2→PCA7</span>、idx11 <span class="bad">PCA1→PCA8</span>；
+<code>strum_channel_mapping</code> → <code>PCA2,PCA4,PCA6,PCA1,PCA3,PCA5</code>（板上 + 本地仓库副本均已改，板上备份 <code>servo_config.csv.bak_20261011_2126</code>）。<br>
+实测明细见 <b>55_18路逐片实测对照表.html</b>。
+</div>
+
+<h2>一、为什么会有「两张表」（这是关键）</h2>
+<table>
+<tr><th>使用场景</th><th>发的是什么帧</th><th>序号→孔 由谁翻译</th><th>改得动吗</th></tr>
+<tr><td><b>自动演奏</b>（和弦 / 歌曲）</td><td>批量帧（18 个角度，<b>只带序号</b>）</td><td class="mono">ESP32 固件 board_profiles.cpp 的 chord_ch[]</td><td class="bad">❌ 要重刷固件</td></tr>
+<tr><td><b>手动点</b>（点名台 / 网页 jog / 校准）</td><td>单通道帧（<b>直接带孔号</b> PCA2 / PWM0 …）</td><td class="mono">Python 的 servo_config.csv</td><td class="ok">✅ 改文件即可</td></tr>
+</table>
+<div class="callout warn">
+<b>所以：</b>固件那张表是<b>编译进芯片</b>的，不重刷就动不了。如果接线和固件表不一致，<b>光改 csv 只能修好「手动点」，修不好「自动弹」</b>。
+—— 这就是「拔线对齐」真正有意义的理由。
+</div>
+
+<h2>二、18 个孔 · 两版对照</h2>
+<p class="small">「固件」列 = 自动演奏时真正被驱动的孔；「csv」列 = 手动点时被驱动的孔。<span class="bad">❌</span> 表示两版说法不同。</p>
+<table>
+<tr><th>逻辑位</th><th>固件 XIAOZHI（自动演奏）</th><th>csv 现状 V5.1（手动点）</th><th>一致</th></tr>
+<tr><td>弦1 · 品12组</td><td class="mono">GPIO40 直驱</td><td class="mono">PWM0 (=GPIO40)</td><td class="ok">✅</td></tr>
+<tr><td>弦1 · 品34组</td><td class="mono">PCA15</td><td class="mono">PCA15</td><td class="ok">✅</td></tr>
+<tr><td>弦2 · 品12组</td><td class="mono">PCA13</td><td class="mono">PCA13</td><td class="ok">✅</td></tr>
+<tr><td>弦2 · 品34组</td><td class="mono">PCA11</td><td class="mono">PCA11</td><td class="ok">✅</td></tr>
+<tr><td>弦3 · 品12组</td><td class="mono">PCA9</td><td class="mono">PCA9</td><td class="ok">✅</td></tr>
+<tr><td>弦3 · 品34组</td><td class="mono">PCA7</td><td class="mono">PCA2</td><td class="bad">❌</td></tr>
+<tr><td>弦4 · 品12组</td><td class="mono">GPIO39 直驱</td><td class="mono">PWM1 (=GPIO39)</td><td class="ok">✅</td></tr>
+<tr><td>弦4 · 品34组</td><td class="mono">PCA16</td><td class="mono">PCA16</td><td class="ok">✅</td></tr>
+<tr><td>弦5 · 品12组</td><td class="mono">PCA14</td><td class="mono">PCA14</td><td class="ok">✅</td></tr>
+<tr><td>弦5 · 品34组</td><td class="mono">PCA12</td><td class="mono">PCA12</td><td class="ok">✅</td></tr>
+<tr><td>弦6 · 品12组</td><td class="mono">PCA10</td><td class="mono">PCA10</td><td class="ok">✅</td></tr>
+<tr><td>弦6 · 品34组</td><td class="mono">PCA8</td><td class="mono">PCA1</td><td class="bad">❌</td></tr>
+<tr><td>拨弦 · 弦1</td><td class="mono">PCA2</td><td class="mono">PCA4</td><td class="bad">❌</td></tr>
+<tr><td>拨弦 · 弦2</td><td class="mono">PCA4</td><td class="mono">PCA6</td><td class="bad">❌</td></tr>
+<tr><td>拨弦 · 弦3</td><td class="mono">PCA6</td><td class="mono">PCA8</td><td class="bad">❌</td></tr>
+<tr><td>拨弦 · 弦4</td><td class="mono">PCA1</td><td class="mono">PCA3</td><td class="bad">❌</td></tr>
+<tr><td>拨弦 · 弦5</td><td class="mono">PCA3</td><td class="mono">PCA5</td><td class="bad">❌</td></tr>
+<tr><td>拨弦 · 弦6</td><td class="mono">PCA5</td><td class="mono">PCA7</td><td class="bad">❌</td></tr>
+</table>
+<div class="callout">
+<b>差异规律（源码注释也这么写）：</b><br>
+① U9.x / U11.x 那两组<b>整体移 2 格</b>（拨弦 6 路全部跟上）；<br>
+② 两个「绕回」：<span class="mono">弦3品34：PCA2→PCA7</span>、<span class="mono">弦6品34：PCA1→PCA8</span>。<br>
+合计正好 <b>8 处</b>，其余 10 路两版完全一致。
+</div>
+
+<h2>三、判定：点这 3 路就知道你是哪一版（约 2 分钟）</h2>
+<p>在点名台上，每一路只驱动一个孔，观察<b>物理上动的是「压弦片」还是「拨弦片」</b>：</p>
+<table>
+<tr><th>点这个孔</th><th>固件说是</th><th>csv 说是</th><th>你看到的 → 结论</th></tr>
+<tr><td class="mono">PCA2</td><td>拨弦 · 弦1</td><td class="bad">弦3·品34组（压弦）</td><td>动的是<b>拨弦片</b> → 甲（XIAOZHI 版线）<br>动的是<b>压弦片</b> → 乙（V5.1 版线）</td></tr>
+<tr><td class="mono">PCA7</td><td>弦3·品34组（压弦）</td><td class="bad">拨弦 · 弦6</td><td>动的是<b>压弦片</b> → 甲；动的是<b>拨弦片</b> → 乙</td></tr>
+<tr><td class="mono">PCA8</td><td>弦6·品34组（压弦）</td><td class="bad">拨弦 · 弦3</td><td>动的是<b>压弦片</b> → 甲；动的是<b>拨弦片</b> → 乙</td></tr>
+</table>
+<p class="small">附带确认：<span class="mono">PWM0</span> 应动<b>弦1 的品12组</b>那片、<span class="mono">PWM1</span> 应动<b>弦4 的品12组</b>那片（这两路两版一致，可用来确认方向与编号基准）。</p>
+
+<h2>四、两种结局，各自怎么做</h2>
+<div class="callout ok">
+<b>甲 · 你的线是按 XIAOZHI / V6.0 那版插的</b><br>
+→ <b>一根线都不用动。</b>只把 csv 那 8 行改成固件的值，1 分钟改完、不用刷固件。<br>
+→ 这是最省事的情况，也是最可能的（若你用的是官方排针板按丝印插的）。
+</div>
+<div class="callout warn">
+<b>乙 · 你的线是按老版（V5.1，即笔记 48 / 50 / 51 里那套）插的</b><br>
+→ <b>B1 拔线对齐（推荐）</b>：把线挪到「第五节」那张表要的孔（主要是 {PCA2 / PCA1} 与 {PCA7 / PCA8} 对调 + 拨弦 6 根整体移 2 格），csv 同步改成 XIAOZHI 值。<b>不用刷固件。</b><br>
+→ <b>B2 不动线</b>：csv 改成本身现状，再把固件 <span class="mono">board_profiles.cpp</span> 的 XIAOZHI 表改成同一份，<b>重刷一次固件</b>。<b>不用拔线。</b>
+</div>
+
+<h2>五、目标接线表（要拔线就用这张 = 固件 XIAOZHI 表）</h2>
+<table>
+<tr><th>逻辑位</th><th>该插到</th><th>逻辑位</th><th>该插到</th></tr>
+<tr><td>弦1 · 品12组</td><td class="mono">GPIO40 直驱</td><td>弦4 · 品34组</td><td class="mono">PCA16</td></tr>
+<tr><td>弦1 · 品34组</td><td class="mono">PCA15</td><td>弦5 · 品12组</td><td class="mono">PCA14</td></tr>
+<tr><td>弦2 · 品12组</td><td class="mono">PCA13</td><td>弦5 · 品34组</td><td class="mono">PCA12</td></tr>
+<tr><td>弦2 · 品34组</td><td class="mono">PCA11</td><td>弦6 · 品12组</td><td class="mono">PCA10</td></tr>
+<tr><td>弦3 · 品12组</td><td class="mono">PCA9</td><td>弦6 · 品34组</td><td class="mono">PCA8</td></tr>
+<tr><td>弦3 · 品34组</td><td class="mono">PCA7</td><td>拨弦 · 弦1</td><td class="mono">PCA2</td></tr>
+<tr><td>弦4 · 品12组</td><td class="mono">GPIO39 直驱</td><td>拨弦 · 弦2</td><td class="mono">PCA4</td></tr>
+<tr><td>弦4 · 品34组</td><td class="mono">PCA16</td><td>拨弦 · 弦3</td><td class="mono">PCA6</td></tr>
+<tr><td>弦5 · 品12组</td><td class="mono">PCA14</td><td>拨弦 · 弦4</td><td class="mono">PCA1</td></tr>
+<tr><td>弦5 · 品34组</td><td class="mono">PCA12</td><td>拨弦 · 弦5</td><td class="mono">PCA3</td></tr>
+<tr><td>弦6 · 品12组</td><td class="mono">PCA10</td><td>拨弦 · 弦6</td><td class="mono">PCA5</td></tr>
+</table>
+<p class="small">注：PCA 编号 = PCA9685 板上的丝印通道号（1~16）；直驱走 ESP32 的 IO40 / IO39，不经 PCA。</p>
+
+<hr>
+<h2>六、别忘了第二个维度：方向</h2>
+<div class="callout warn">
+拔线只能解决「<b>谁在哪个孔</b>」。<b>同一片舵机，0° 是缩还是伸，由它上下排镜像安装决定，跟孔无关。</b><br>
+所以就算线全插对，仍可能有一半片是「反的」——那只能靠软件里的零偏/符号，或代码里那段「弦4/5/6 品号 1↔2、3↔4 互换」的硬编码来修。<br>
+<b>顺序：① 先定孔（本文档）→ ② 再定方向（下一轮）。两件事分开做，别混。</b>
+</div>
+
+</div>
+</body>
+</html>

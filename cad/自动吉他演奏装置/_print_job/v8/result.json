@@ -1,0 +1,77 @@
+{
+    "error_string": "Success.",
+    "export_time": 651,
+    "layer_height": 0.20000000298023224,
+    "plate_index": 0,
+    "prepare_time": 19,
+    "return_code": 0,
+    "sliced_plates": [
+        {
+            "feature_type_times": {
+                "Bottom surface": 335.9605407714844,
+                "Bridge": 306.2549133300781,
+                "Custom": 0.8583930730819702,
+                "Inner wall": 335.9883728027344,
+                "Internal solid infill": 537.3117065429688,
+                "Outer wall": 437.504150390625,
+                "Overhang wall": 43.72079086303711,
+                "Skirt": 8.60174560546875,
+                "Sparse infill": 414.96221923828125,
+                "Top surface": 237.08848571777344,
+                "Travel": 496.4679870605469,
+                "Undefined": 496.34051513671875
+            },
+            "filament_change_times": 0,
+            "filaments": [
+                {
+                    "filament_id": "GFG00",
+                    "id": 1,
+                    "main_used_g": 20.778501510620117,
+                    "total_used_g": 20.778501510620117
+                }
+            ],
+            "generate_support_material_time": 31,
+            "id": 1,
+            "infill_time": 149,
+            "layer_filament_change": 0,
+            "main_predication": 3153.75341796875,
+            "make_perimeters_time": 284,
+            "obj_cached_cnt": 0,
+            "objects": [
+                {
+                    "bbox": {
+                        "depth": 85.0,
+                        "height": 4.0,
+                        "width": 65.0,
+                        "x": 96.24999237060547,
+                        "y": 57.5,
+                        "z": 0.0
+                    },
+                    "id": 49,
+                    "name": "E:/音乐/档3实现/cad/自动吉他演奏装置/_print_job/batt_v2_flat.stl",
+                    "triangle_count": 4132
+                },
+                {
+                    "bbox": {
+                        "depth": 74.5,
+                        "height": 6.5,
+                        "width": 55.5,
+                        "x": 38.75001907348633,
+                        "y": 62.75,
+                        "z": 0.0
+                    },
+                    "id": 38,
+                    "name": "E:/音乐/档3实现/cad/自动吉他演奏装置/_print_job/top_v8_flat.stl",
+                    "triangle_count": 7026
+                }
+            ],
+            "sliced_time": 897,
+            "sliced_time_with_cache": 405,
+            "total_predication": 3154.484375,
+            "triangle_count": 11158,
+            "warning_message": ""
+        }
+    ],
+    "sparse_infill_density": 20.0,
+    "wall_loops": 2
+}

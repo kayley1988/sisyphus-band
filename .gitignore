@@ -1,0 +1,24 @@
+# 系统烧录镜像（5.4GB，超出 GitHub 限制）
+tspi_flash/
+*.img
+
+# 超过 GitHub 单文件 100MB 上限的模型
+_tts/vits-zh-hf-fanchen-C/
+_tts/vits-zh-hf-fanchen-C.tar.bz2
+
+# 运行时产物
+__pycache__/
+*.pyc
+*.bak_*
+*.bak
+
+# 第三方工具/便携包（可重新下载，不入库）
+.tools/
+adb_tools/
+
+# 依赖 wheel（可用 pip 重新安装）
+*.whl
+
+# 临时
+/tmp/
+*.log.tmp

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html data-page-node-id="FgNKZtT9Vlfipb8MCkNDXH" lang="zh-CN">
+<head data-page-node-id="6yyJMoml6fyuvd39pFZ9WW">
+<script data-page-node-id="fBHkitErtHkyTKIJecJTUu" src="/page/page_comm/inject.js"></script>
+<meta data-page-node-id="RjCmJXkbQ465qrAe4sZcku" charset="UTF-8">
+<title data-page-node-id="6n09WIy6oTyOPP8LjIMAui" data-pnid-children="icJc92PCKhU8uXwfrc5TIE">无障碍吉他助手 - SPI 屏幕界面原型</title>
+<style data-page-node-id="OEEpGOgfyW450xwHqez3QY" data-pnid-children="DRluqFnbqGSxFtWNjZL8OQ">
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#1a1a1f; color:#ccc;
+    font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+    padding:24px; display:flex; flex-direction:column; align-items:center; gap:32px;
+  }
+  h1 { font-size:19px; color:#fff; font-weight:600; }
+  .sub { font-size:13px; color:#888; max-width:760px; text-align:center; line-height:1.7; }
+
+  .screens { display:flex; flex-wrap:wrap; gap:40px; justify-content:center; }
+
+  /* 模拟 SPI 屏的物理外观 */
+  .screen-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .screen-label { font-size:12px; color:#777; }
+  .screen-label b { color:#4fc3f7; }
+
+  .screen {
+    border:9px solid #2a2a30;
+    border-radius:9px;
+    box-shadow:0 0 0 2px #111, 0 8px 26px rgba(0,0,0,.65);
+    overflow:hidden;
+    image-rendering:pixelated;
+    /* 小屏视角的轻微暗角，模拟真实观感 */
+    position:relative;
+  }
+  .screen::after {
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.25) 100%);
+  }
+
+  /* 240x240 屏（1.3~1.5寸常见） */
+  .scr240 { width:240px; height:240px; }
+  /* 320x240 屏（2.8~3.5寸常见） */
+  .scr320 { width:320px; height:240px; }
+
+  /* ========== 通用配色：无障碍高对比 ==========
+     要点：黑底 + 高亮度前景。不要用灰底白字，对比度不够。
+     色盲友好：不靠红绿区分，用文字+图形形状区分。 */
+  .ui { width:100%; height:100%; background:#000; position:relative;
+        display:flex; flex-direction:column; font-variant-numeric:tabular-nums; }
+
+  /* 顶部状态条 */
+  .bar { height:20px; background:#111; display:flex; align-items:center;
+         padding:0 6px; font-size:10px; color:#666; gap:8px; flex-shrink:0; }
+  .bar .dot { width:6px; height:6px; border-radius:50%; background:#4caf50; }
+  .bar .sp { flex:1; }
+
+  /* ---- 调音界面 ---- */
+  .tune-main { flex:1; display:flex; flex-direction:column;
+               align-items:center; justify-content:center; gap:2px; }
+  .note-big { font-size:78px; font-weight:800; color:#fff; line-height:1;
+              letter-spacing:-2px; }
+  .note-sub { font-size:15px; color:#ffb300; font-weight:600; }
+  .freq { font-size:13px; color:#888; margin-top:2px; }
+
+  /* 音分条：这是核心，必须一眼看出方向 */
+  .cents-wrap { width:100%; padding:6px 8px 0; }
+  .cents-track { height:26px; background:#1a1a1a; border-radius:3px;
+                 position:relative; overflow:hidden;
+                 border:1px solid #333; }
+  /* 中心准心区 */
+  .cents-center { position:absolute; left:50%; top:0; bottom:0; width:16px;
+                  transform:translateX(-50%); background:#1e3a1e; }
+  .cents-center::before,.cents-center::after {
+    content:""; position:absolute; top:3px; bottom:3px; width:1px; background:#4caf50; }
+  .cents-center::before { left:0; } .cents-center::after { right:0; }
+
+  .cents-needle { position:absolute; top:0; bottom:0; width:5px; border-radius:2px; }
+
+  .cents-scale { display:flex; justify-content:space-between;
+                 font-size:9px; color:#555; padding:2px 8px 0; }
+
+  .dir-text { text-align:center; font-size:20px; font-weight:800;
+              padding:6px 0 2px; letter-spacing:1px; }
+  .dir-sub { text-align:center; font-size:11px; color:#777; padding-bottom:4px; }
+
+  .string-row { display:flex; justify-content:center; gap:5px; padding:0 8px 8px; }
+  .str-chip { flex:1; height:22px; border-radius:3px; background:#141414;
+              border:1px solid #2a2a2a; display:flex; align-items:center;
+              justify-content:center; font-size:10px; color:#555; font-weight:700; }
+  .str-chip.active { background:#ffb300; color:#000; border-color:#ffb300; }
+  .str-chip.done { background:#1e3a1e; color:#4caf50; border-color:#2d5a2d; }
+
+  /* ---- 和弦界面 ---- */
+  .chord-head { padding:6px 8px 2px; display:flex; align-items:baseline; gap:8px; }
+  .chord-name { font-size:52px; font-weight:800; color:#fff; line-height:1; }
+  .chord-type { font-size:13px; color:#ffb300; font-weight:600; }
+
+  .fret-area { flex:1; display:flex; padding:4px 8px 8px; gap:6px; }
+
+  /* 指法图 */
+  .fret-diagram { flex:1; position:relative; min-width:0; }
+  .fret-grid { position:absolute; inset:14px 0 12px 0; display:grid;
+               grid-template-columns:repeat(6,1fr);
+               grid-template-rows:repeat(4,1fr); }
+  .fret-line-v { border-left:1px solid #333; }
+  .fret-line-v:last-child { border-right:1px solid #333; }
+  .fret-cell { position:relative; }
+  .fret-h { position:absolute; left:0; right:0; height:1px; background:#2a2a2a; }
+  .fret-dot { position:absolute; width:13px; height:13px; border-radius:50%;
+              background:#ffb300; border:1.5px solid #fff;
+              transform:translate(-50%,-50%); }
+  .fret-dot.finger { display:flex; align-items:center; justify-content:center;
+              font-size:8px; color:#000; font-weight:800; }
+  .fret-x { position:absolute; top:-13px; font-size:11px; color:#666;
+            font-weight:700; transform:translateX(-50%); }
+  .fret-o { position:absolute; top:-13px; font-size:11px; color:#4fc3f7;
+            font-weight:700; transform:translateX(-50%); }
+  .string-labels { position:absolute; bottom:0; left:0; right:0;
+                   display:grid; grid-template-columns:repeat(6,1fr);
+                   font-size:9px; color:#555; text-align:center; }
+  .fret-num { position:absolute; top:14px; left:-2px; font-size:9px;
+              color:#666; line-height:1; }
+
+  /* 提示区 */
+  .hint { padding:0 8px 8px; }
+  .hint-line { font-size:10px; color:#4fc3f7; line-height:1.6;
+               display:flex; gap:5px; }
+  .hint-line .k { color:#555; flex-shrink:0; }
+
+  /* ---- 和弦列表界面 ---- */
+  .list-head { padding:5px 8px; font-size:11px; color:#666;
+               display:flex; justify-content:space-between; }
+  .list { flex:1; overflow:hidden; padding:0 6px 6px; }
+  .list-item { height:26px; display:flex; align-items:center; gap:8px;
+               padding:0 6px; border-radius:3px; margin-bottom:2px;
+               border:1px solid transparent; }
+  .list-item.sel { background:#ffb300; }
+  .list-item.sel .li-name { color:#000; }
+  .list-item.sel .li-fret { color:#333; }
+  .li-name { font-size:20px; font-weight:800; color:#ddd; width:56px; }
+  .li-fret { font-size:11px; color:#666; letter-spacing:2px; font-weight:600; }
+  .li-badge { margin-left:auto; font-size:9px; padding:1px 5px;
+              border-radius:2px; background:#2a2a2a; color:#888; }
+  .list-item.sel .li-badge { background:#00000033; color:#000; }
+
+  /* ---- 状态/菜单界面 ---- */
+  .menu { flex:1; display:flex; flex-direction:column;
+          justify-content:center; padding:12px 16px; gap:7px; }
+  .menu-item { font-size:13px; color:#888; display:flex;
+               align-items:center; gap:8px; padding:5px 8px;
+               border-radius:3px; }
+  .menu-item.active { background:#ffb300; color:#000; font-weight:700; }
+  .menu-item .ic { width:14px; text-align:center; }
+  .menu-item .hintk { margin-left:auto; font-size:10px; opacity:.6; }
+
+  .legend { font-size:12px; color:#777; max-width:820px; line-height:1.9; }
+  .legend code { background:#2a2a30; padding:1px 5px; border-radius:3px;
+                 color:#4fc3f7; font-size:11px; }
+  .legend b { color:#eee; }
+</style>
+</head>
+<body data-page-node-id="gpaFicmfuBKNy0iiKItxwY">
+
+<h1 data-page-node-id="86IxjvSXifXzyztt1lhxcB"><!--pnid:AVOxp2mUPtPFzUR8yydlZs-->无障碍吉他助手 · SPI 屏幕界面原型</h1>
+<p data-page-node-id="ASSCR4AySlAm774PqJwRLO" class="sub"><!--pnid:9NlEQQx1On0riX3J4cF8CK-->
+  按 SPI 小屏真实分辨率 1:1 绘制。配色遵循无障碍高对比原则：<b data-page-node-id="TPNgOHXJiwsOb5E179QKZt"><!--pnid:gYEjkpqxLYf73jYasr1b9f-->黑底 + 高亮度前景</b><!--pnid:J2awk6Ekx2oTN7EyA9CSNq-->，
+  不用灰白配色；方向提示同时用<b data-page-node-id="ZulVL3PULm8k4Uo81ye4EE"><!--pnid:mHD1m9YGe1OOxpvpvZ823J-->颜色 + 文字 + 指针位置</b><!--pnid:fRzyFaL2OBrmjGyeXhYM1I-->三重编码，色盲用户也能用。
+  注意屏幕只有拇指大小，所以每屏只放一个核心信息。
+</p>
+
+<div data-page-node-id="vkZQvQX1cu245eGwH9sD7K" class="screens">
+
+  <!--pnid:gpQULOvnGESwbbR4SUerJQ--><!-- ============ 1. 调音中（偏低）240x240 ============ -->
+  <div data-page-node-id="qyRCyEC0lmBKWYCVtY9ggw" class="screen-wrap">
+    <div data-page-node-id="TYqscFcZv6FQ0T71c91a3H" class="screen scr240">
+      <div data-page-node-id="KQxShGaX3s9mUxa2TnrdM2" class="ui">
+        <div data-page-node-id="6YB6P2IxB2TIQMi2p6ySVw" class="bar">
+          <span data-page-node-id="TmnRBoXOqsjA43BkUvzgPT" class="dot"></span><span data-page-node-id="rdyMKynqZbHFoMRCCHH2z0"><!--pnid:kM4AiEItJV0qGwVHXRuXT7-->调音</span>
+          <span data-page-node-id="lYSO1GKHp1DQB9vTDJTPHP" class="sp"></span>
+          <span data-page-node-id="uLgjvEth6H15vjyqdXon0u"><!--pnid:MRmCxFQbTGWb4GQkUSKkSt-->hw:1,0</span>
+        </div>
+        <div data-page-node-id="4C7ohoD1ZRNnApEriuEzaG" class="tune-main">
+          <div data-page-node-id="FwAfH5eLLXl79tcnTe5m4S" class="note-big"><!--pnid:g5epMbqa7gCJ7v0ope7XKy-->E</div>
+          <div data-page-node-id="G8zRgo6EiRJFT9rLutDWMj" class="note-sub"><!--pnid:IVWwuV17PL7NGjRi4bS6pm-->6弦 低音E</div>
+          <div data-page-node-id="h7DqN4W2B9Ls7q2ex0YxTv" class="freq"><!--pnid:0WOHhAkzrwHhZBCwRbePB4-->79.8 Hz</div>
+        </div>
+        <div data-page-node-id="lcsII8xXrCIPKDue27mKC5" class="cents-wrap">
+          <div data-page-node-id="mZj7gjmqRWVPWfkXowObfG" class="cents-track">
+            <div data-page-node-id="0lFJMGEUvcAJ34tPuj4yF3" class="cents-center"></div>
+            <div data-page-node-id="kMAC1h4mqZP9dU5GCoibTE" class="cents-needle" style="background:#ff5252; left:16%"></div>
+          </div>
+        </div>
+        <div data-page-node-id="c1wykicfxb2caSP49JY0Qf" class="cents-scale"><span data-page-node-id="euO6FEQcn3wotCRgDwaL1T"><!--pnid:6UxWbplu0LJM6seQMpHWsZ-->-50</span><span data-page-node-id="YKVxpeYxsLaWVyssDTHUiA"><!--pnid:KL4fJYSSNI5N1Glsbf7eq1-->0</span><span data-page-node-id="a6xvLWuqfMVqyk0Fqzu8ph"><!--pnid:a5YnxidMu0IxbspT7PjDmM-->+50</span></div>
+        <div data-page-node-id="GJBkethL83ZArm7WJF1LJu" class="dir-text" style="color:#ff5252"><!--pnid:iVbG47H0KviD2pCu5YQYJq-->◀ 偏低 紧弦</div>
+        <div data-page-node-id="Eyt1NhQuCqmlFt04faMzP5" class="dir-sub"><!--pnid:3ic63RcX9ktl4rELjRcmwi-->-33 音分</div>
+        <div data-page-node-id="BnoFcBezomEHL6TcC2W0Kw" class="string-row">
+          <div data-page-node-id="qqpdvjOGP742Cszk4EvfZx" class="str-chip active"><!--pnid:JL7BXNSoXgykWeoeT5VsJ4-->6E</div>
+          <div data-page-node-id="qEzwt62MFgaf29v1UeDTtA" class="str-chip"><!--pnid:wS61YU3Jz9QfBq6LErAieL-->5A</div>
+          <div data-page-node-id="AxkMJYLS8dm5CXTMykJktq" class="str-chip"><!--pnid:NAb3nxIDENGOpjzUpbQOSR-->4D</div>
+          <div data-page-node-id="LrxwNuYwHU21DHGNcHccHP" class="str-chip"><!--pnid:gmHohQ2OR2rX4q6mz6BW7b-->3G</div>
+          <div data-page-node-id="pEBqH67FobqzcofmkZJCt0" class="str-chip"><!--pnid:wGQuD6PaE9ud8RBT22vuom-->2B</div>
+          <div data-page-node-id="4m2gYSuhojugH6OMlnIfHr" class="str-chip"><!--pnid:PWaJLuCojZhzyCNMbFx9dC-->1E</div>
+        </div>
+      </div>
+    </div>
+    <div data-page-node-id="PFaXUXojgtQ2MZI76f4zt5" class="screen-label"><b data-page-node-id="dBiG0tBiiXNdhKhxvzI1on"><!--pnid:fJOd3TvZkMoRBnpanA5lsy-->240×240</b><!--pnid:FsaYD8P4gYsmayywPvydQW--> · 调音中（偏低很多）</div>
+  </div>
+
+  <!--pnid:fsVAI6g77NbqQDMoJ4Rxvb--><!-- ============ 2. 调音中（准了）240x240 ============ -->
+  <div data-page-node-id="vI2j1vBRwmSjoukuKrsloS" class="screen-wrap">
+    <div data-page-node-id="nPdkrSQFLAEpJdi8jkL7lp" class="screen scr240">
+      <div data-page-node-id="jzji7XB0yRmYxj8HGqjOUf" class="ui">
+        <div data-page-node-id="DQTkKxxihNga9WtbjQi8Wb" class="bar">
+          <span data-page-node-id="NRbABFnFTHK1CmGv3K4KgZ" class="dot"></span><span data-page-node-id="wi4bKkHsE3l6YQQNUNN4Dg"><!--pnid:q9vxjPNvM4ooUjY0KDgZZI-->调音</span>
+          <span data-page-node-id="f1SdwSvnqTdUlaIkxWRZzU" class="sp"></span>
+          <span data-page-node-id="qr8tTbj6eJtNyxerTkEE3o"><!--pnid:Fb3npm2EzdaZsEpBWdsrqO-->hw:1,0</span>
+        </div>
+        <div data-page-node-id="3eznX4p9d5fskMw8sszUaD" class="tune-main">
+          <div data-page-node-id="FF32ZgRFkld5TNyXFug72k" class="note-big" style="color:#4caf50"><!--pnid:muTWp8lWpLKEFCCdaRzX1J-->E</div>
+          <div data-page-node-id="Klh9Vg9zFgSTyhnATQL5dV" class="note-sub"><!--pnid:sCnOIijslPA0MUHo2DekvU-->6弦 低音E</div>
+          <div data-page-node-id="rrwPHRMfcnWLlIGtDNQydb" class="freq"><!--pnid:uooOw9ksuxC3upZkAnKRlA-->82.4 Hz</div>
+        </div>
+        <div data-page-node-id="1yw0oYaVl2PNRPMQVtDpCP" class="cents-wrap">
+          <div data-page-node-id="7dbuamA2FUCi2lU2Mrvwxi" class="cents-track">
+            <div data-page-node-id="H9SDRWJ9IbBjsDodRJ4tkA" class="cents-center"></div>
+            <div data-page-node-id="ilB5bS3M8JDQHhKpMEagVn" class="cents-needle" style="background:#4caf50; left:49%"></div>
+          </div>
+        </div>
+        <div data-page-node-id="FbMEcgZuWRM7oT5MW08JtA" class="cents-scale"><span data-page-node-id="164yaTjfcViXMr6F8EtUmn"><!--pnid:TiQpbJIKLr2JZjCKZkZvZ2-->-50</span><span data-page-node-id="aBdSRVIAJ48clhMT9hFR2X"><!--pnid:1yjLtaQoxFz2OJifkvwtG9-->0</span><span data-page-node-id="vL93mlENPGAtYgfitRVyGx"><!--pnid:bteySL6wic5niTxwZObY8Y-->+50</span></div>
+        <div data-page-node-id="p7lv7ako4QllicHwo1MsZd" class="dir-text" style="color:#4caf50"><!--pnid:TZkPXuGVYWv0WOhqVpGzXq-->● 准了</div>
+        <div data-page-node-id="FKmNSMecdIjZbgL2Sp52qt" class="dir-sub"><!--pnid:aIqEGYCHpLafj4TMXA16cF-->-0.4 音分</div>
+        <div data-page-node-id="57vWVOLAmFmuKdBpsj7MB0" class="string-row">
+          <div data-page-node-id="GLYVLD7fJWoInXJni7W88I" class="str-chip done"><!--pnid:Zc0ScTq8m0aTUZFy3NE5yb-->6E</div>
+          <div data-page-node-id="Qep9xYhktehlT2STTp2E6f" class="str-chip"><!--pnid:KP1rbIASEE5NRACHVIlFRp-->5A</div>
+          <div data-page-node-id="TdiuAmJ2JFhBwUumEmK29x" class="str-chip"><!--pnid:dLEbOaV7lO4enhJWbLRzGD-->4D</div>
+          <div data-page-node-id="3C0ABK7Wbo1jBMc04lFy6r" class="str-chip"><!--pnid:6ad4GqxTLY03ecquHnOdod-->3G</div>
+          <div data-page-node-id="Mwjr9CpBp4eyzk75yRSlMa" class="str-chip"><!--pnid:wxXvggN6mZqy3OjZgtKMRG-->2B</div>
+          <div data-page-node-id="A4OJoYJQAJWYHQXv6Pwx5H" class="str-chip"><!--pnid:QKs7MtQAHyT5ovKcpMNook-->1E</div>
+        </div>
+      </div>
+    </div>
+    <div data-page-node-id="P9zsddg0EKvjRhtivQkaTa" class="screen-label"><b data-page-node-id="rI3bN34JgQ8aZvUKGOF15K"><!--pnid:4bhI7zoj1NgehBl2PzX3Bm-->240×240</b><!--pnid:1AwXd1ZxcApLYM41N0zScr--> · 调音完成（听觉+振动同时庆祝）</div>
+  </div>
+
+  <!--pnid:pbjUOHJAxJN6fELxWqRrsP--><!-- ============ 3. 调音中（偏高）320x240 ============ -->
+  <div data-page-node-id="WcvuPL1jVsNkawEVlKs4Eq" class="screen-wrap">
+    <div data-page-node-id="FpjTrNdEe1gUZHAg4CqWFd" class="screen scr320">
+      <div data-page-node-id="Dkd5J3cKcfVT4fx0cuGvaC" class="ui">
+        <div data-page-node-id="6vrE5nJTc0DsyLQLz10Kqp" class="bar">
+          <span data-page-node-id="oW8HKx1heoOC89stXWWRzP" class="dot"></span><span data-page-node-id="ewv5prariBCwpztYWDGYoS"><!--pnid:cahI1Y6YhIP50j9U3FLmbO-->调音</span>
+          <span data-page-node-id="YKUePVqSblwbqex04PQsL7" class="sp"></span><span data-page-node-id="GY7tpW6lWw0vIRJz6J00Hc"><!--pnid:TCoWhWNOqLRvpMxK5RTtCK-->置信度 0.98</span>
+        </div>
+        <div data-page-node-id="g95v80WEEb0wXOQmCkGODq" class="tune-main">
+          <div data-page-node-id="AFFCPl7wGlsQ7KcRIOKNq3" class="note-big" style="font-size:66px"><!--pnid:yzNKbkdzbOSkgay5Bd8OHo-->A</div>
+          <div data-page-node-id="bayopOAGb3AtIaF13AercK" class="note-sub"><!--pnid:3SGx89z8f4AabneuFcQQtl-->5弦 A</div>
+          <div data-page-node-id="OX1ref8aGJ8v6LUPuBW8DP" class="freq"><!--pnid:KcJcPFsZov64gBanJHsIj9-->113.2 Hz</div>
+        </div>
+        <div data-page-node-id="II6OhWSoyOhusiDlTx7XQp" class="cents-wrap">
+          <div data-page-node-id="BQhXcOYSg6tIOhy23kInGd" class="cents-track">
+            <div data-page-node-id="lYlJgQb2FV11E143EDqLHB" class="cents-center"></div>
+            <div data-page-node-id="TQnG3FyE8pfjH4bkJoC17Q" class="cents-needle" style="background:#ff5252; right:22%"></div>
+          </div>
+        </div>
+        <div data-page-node-id="xjmCXZjunEIeXhTik85tOW" class="cents-scale"><span data-page-node-id="QxW97IGMMCvaYImuDLzwZk"><!--pnid:SLHxvKTpeGkw4YKps2z7es-->-50</span><span data-page-node-id="FpA1z0EGvOlx9FPWUeGLAE"><!--pnid:VgiYa48bsnXxJBKG9tpCNi-->0</span><span data-page-node-id="4fBnPoNAX2ql9jD4ZjASOn"><!--pnid:hQ0oYZhvT2BjXK0HrLBCwj-->+50</span></div>
+        <div data-page-node-id="jzdlVRxOoN98RAsuRNkdOo" class="dir-text" style="color:#ff5252"><!--pnid:4WspxL0NMO0SOb6ZV11YP7-->偏高 松弦 ▶</div>
+        <div data-page-node-id="khuCjVxSQtYcUfuoSZdYNT" class="dir-sub"><!--pnid:nFNE2X9FMQWtFfjhjfCkCi-->+28 音分</div>
+        <div data-page-node-id="Fu5Ql2Q8NIWzOm1WNG6WiF" class="string-row">
+          <div data-page-node-id="m3FsV1h28dD2YkXJaRzOf5" class="str-chip done"><!--pnid:7qxMnCQiomsiG448BrzDDD-->6E</div>
+          <div data-page-node-id="x0saL1jJNPRaJY63EftxWw" class="str-chip active"><!--pnid:wJce3OGarkRiXgR4OJhcP0-->5A</div>
+          <div data-page-node-id="GuWuPGRd1TOwgbt5f5FFUk" class="str-chip"><!--pnid:f9XlkPwLswbmsiiQsIKHoy-->4D</div>
+          <div data-page-node-id="otcBNS9rnqaUNVK5afcatb" class="str-chip"><!--pnid:t7t7GOhUmr3ZXUWNLkMDp5-->3G</div>
+          <div data-page-node-id="kGPeBla3jhRV12NLqx2wmm" class="str-chip"><!--pnid:0m971WxnYd3nGCS5kfhaD9-->2B</div>
+          <div data-page-node-id="ItNt8Xy5FpzIcZHfhqeqzB" class="str-chip"><!--pnid:84eDjhqt8MuRB0F6jc384A-->1E</div>
+        </div>
+      </div>
+    </div>
+    <div data-page-node-id="EJxDft8QELpodaXNB4tK5H" class="screen-label"><b data-page-node-id="gjPD77sxQLKt4PHG9nctxZ"><!--pnid:W3N2CFVPtIrF74dlI0UMB0-->320×240</b><!--pnid:QKKenGBQHCmOFnQyxO2Ive--> · 偏高（可以多显示置信度/设备信息）</div>
+  </div>
+
+  <!--pnid:tMlBMMxAAqaNr2Xmwh9UH6--><!-- ============ 4. 和弦识别 240x240 ============ -->
+  <div data-page-node-id="ijbEYHEZdgnbMHVFHvw0BB" class="screen-wrap">
+    <div data-page-node-id="oFpBUGe82CFh7Pn13215OR" class="screen scr240">
+      <div data-page-node-id="Qt0Al8EeAqvUH4rWELUY03" class="ui">
+        <div data-page-node-id="EpHfRWJ1MV52SRql15wL2f" class="bar">
+          <span data-page-node-id="3n5wIUC3i4ES0iivj50LI9" class="dot" style="background:#ffb300"></span><span data-page-node-id="5IoDm0WBk6GmHK0Pq34dyo"><!--pnid:EDasPsA4XwMUwYtjjtLAej-->和弦</span>
+          <span data-page-node-id="tor6fWD8hkXHlRkvAKKpOh" class="sp"></span><span data-page-node-id="csDB4V37ed8bYkXy7qDmRl"><!--pnid:RlSE29ydjYp9IBJOp3Z9a4-->匹配 0.79</span>
+        </div>
+        <div data-page-node-id="xyO16dNd050D8SZNvRMe9V" class="chord-head">
+          <div data-page-node-id="R1AhYH1RKiQrwLkHu2XqQB" class="chord-name"><!--pnid:CTjB7h1Z4QtrScLswX0wUH-->Am</div>
+          <div data-page-node-id="DOn7bXvYooVVCARTWv1jXQ" class="chord-type"><!--pnid:cRS74C36Kc8Cw1QScnk7Gu-->A 小和弦</div>
+        </div>
+        <div data-page-node-id="DZFTUKWpI7Jo820kuSY6tv" class="fret-area">
+          <div data-page-node-id="E6frGyNaNUoxuhJlCBLnij" class="fret-diagram">
+            <div data-page-node-id="2q0y48RnCoy77fy3quUtGg" class="fret-grid">
+              <div data-page-node-id="tTjxLTWMjifu5thHKs2BNi" class="fret-cell"><div data-page-node-id="KBsdQUluK358vpz0xK5PXh" class="fret-line-v"></div></div>
+              <div data-page-node-id="8Ys83j83Kr5h1CP3woAkTW" class="fret-cell"><div data-page-node-id="ugKMgVLrMH6ckrJpOQOZwR" class="fret-line-v"></div></div>
+              <div data-page-node-id="XjkMdZKEyxJsqmk3OxxGb9" class="fret-cell"><div data-page-node-id="ZC4YIkxZEEUc0jsdgN0I6b" class="fret-line-v"></div></div>
+              <div data-page-node-id="2fdnbTEnh2HgTY17gG68tD" class="fret-cell"><div data-page-node-id="MNdzGoDy7WLIVs6WW69SIF" class="fret-line-v"></div></div>
+              <div data-page-node-id="K0DQrdcMtXohGdKDtM2YPm" class="fret-cell"><div data-page-node-id="q6Ux8EkgKEOtJVsXNAEQyK" class="fret-line-v"></div></div>
+              <div data-page-node-id="qePUub30kL1ZALc8rpIXuH" class="fret-cell"><div data-page-node-id="ZR430Np8WhquKpo9js243g" class="fret-line-v"></div></div>
+            </div>
+            <!--pnid:032h6TRwaKjy9ITAozvqNe--><!-- 弦头标记 -->
+            <div data-page-node-id="Av628teY0OfvddwyoeW0Nv" class="fret-x" style="left:8.3%"><!--pnid:M7UvjTFyln7dS8NUe1JXLT-->×</div>
+            <div data-page-node-id="ezhgIe4vXbIym7Jw78N4Rd" class="fret-o" style="left:25%"><!--pnid:B3LFIouL4ucXfiG1Smkmrx-->○</div>
+            <!--pnid:7NbFp2Rrx6S7Ip54ITk2uF--><!-- 指法点 -->
+            <div data-page-node-id="yTkT6oVwTz4xHyE72SoIn2" class="fret-dot finger" style="left:41.6%; top:44%"><!--pnid:Zp3Urs2C9xd1GuJSd0mtA9-->2</div>
+            <div data-page-node-id="Uewvh5Q3qDI2WnnB5E1FOT" class="fret-dot finger" style="left:58.3%; top:44%"><!--pnid:lJfNLrSK13fOXdKdQSh7e9-->3</div>
+            <div data-page-node-id="Nrb8fa7XgjY9OsFEGvvzma" class="fret-dot finger" style="left:75%; top:22%"><!--pnid:vYju7IR9rQqrEdKiUIK12v-->1</div>
+            <div data-page-node-id="u1Dd1DKjfu10qZItLt9WXY" class="fret-o" style="left:91.6%"><!--pnid:zIcpE0dqeRnhWAngIR4hYn-->○</div>
+            <div data-page-node-id="VR6if2OBq6frqPY4PPzlt1" class="string-labels">
+              <div data-page-node-id="0u4caUI8M9HdQ9z8OvqAXo"><!--pnid:dyy5NrpIILAxQDZYHYn4yZ-->6</div><div data-page-node-id="52dAe2YUo94qFDhGqcLKCx"><!--pnid:PPn8XSui5zK9VgO2O2mnZY-->5</div><div data-page-node-id="FCEK5ID0oeInONjNOBgzvw"><!--pnid:jKx7eF5sYr7cTtHKArUV5w-->4</div><div data-page-node-id="VkWP1RSbJtW1FzmqrjMWnj"><!--pnid:3GQPNwX08mxFTZu41ERJUa-->3</div><div data-page-node-id="S6YFtGSvk2fPkb5DfNOaGH"><!--pnid:HdlOYunl3qS8gcYqdn455z-->2</div><div data-page-node-id="h6o5UEngtE9NGtFr9XE8g8"><!--pnid:bmxIRkss1qBmvUx6VLdp6u-->1</div>
+            </div>
+            <div data-page-node-id="qbyMT96oDFSXOXKMJPPGGl" class="fret-num"><!--pnid:iI7m6GWYhgL5QoiPHCQcYq-->1品</div>
+          </div>
+        </div>
+        <div data-page-node-id="N3sDtcEXIwQLzS3036yJBU" class="hint">
+          <div data-page-node-id="FQiBRTo7Eq1QKQLLn5mr2u" class="hint-line"><span data-page-node-id="iy8GxCp2rYflim0GMR4gJ9" class="k"><!--pnid:CfWurBCgb0YMETx8JzmWGQ-->六弦</span><span data-page-node-id="nSuYi0RgqreYsJlJMvj0J5"><!--pnid:EyPCU8koJXNuVdwUOfNFFq-->不弹 · 空弦 · 二品 · 二品 · 一品 · 空弦</span></div>
+        </div>
+      </div>
+    </div>
+    <div data-page-node-id="lUX9auynEkymw6pziWLv3V" class="screen-label"><b data-page-node-id="8bOPBX857nBhSKpMQEhZBr"><!--pnid:Ql4I7LcCb22dctyKzpBNR3-->240×240</b><!--pnid:uX5wd3vPHgJGNUeLIuV3yb--> · 和弦识别（指法图 + 文字描述）</div>
+  </div>
+
+  <!--pnid:LtY05hF563uDSOLE4RANAa--><!-- ============ 5. 和弦列表 320x240 ============ -->
+  <div data-page-node-id="kDR299J844cWyKNbU0yITH" class="screen-wrap">
+    <div data-page-node-id="v924kcwmLd7lqjvTHy3kUR" class="screen scr320">
+      <div data-page-node-id="acKt68oWJWYOlrtT3wMgEi" class="ui">
+        <div data-page-node-id="qHonWsLucYglEV7E32StQ3" class="bar">
+          <span data-page-node-id="fe1qRaaoZ7alKCkMVe54Va" class="dot" style="background:#4fc3f7"></span><span data-page-node-id="Xy1eCYxgOeUmRd7Bb6lbgX"><!--pnid:CXjJ31muBKXU6087KPYxED-->和弦库</span>
+          <span data-page-node-id="VHuW8vdx8XpBnouIpnLiug" class="sp"></span><span data-page-node-id="LAH4CGPhFy19WrbuiSSRsC"><!--pnid:JXG3LHo7HiwmO3F0F6hT1M-->28 个</span>
+        </div>
+        <div data-page-node-id="pg8YHB7nd2vGupmGeWS3nn" class="list-head">
+          <span data-page-node-id="xPmkdzpGIbVa1jE6JXiOjo"><!--pnid:8w2CM9b7xoqMEzxh30C1n3-->常用和弦</span><span data-page-node-id="DoXfBOySV6t8E4LAmANiEW"><!--pnid:7HSUg0Evk7laotkhWdNCFY-->旋钮/按键选择</span>
+        </div>
+        <div data-page-node-id="Y7Vq9OACH1TIbPFrSTdZQP" class="list">
+          <div data-page-node-id="hrGkGhKUVCUs6paYRUUEtr" class="list-item sel">
+            <span data-page-node-id="pG4jemKIN8GVL9R0582yoM" class="li-name"><!--pnid:sLq7EY97Ork2p1MK7XMVxp-->C</span>
+            <span data-page-node-id="CX4D4Lisf3bbYxdW8ifRbE" class="li-fret"><!--pnid:K7Oc50TMPBa8tf5RSSaDnp-->× 3 2 0 1 0</span>
+            <span data-page-node-id="poKR3WE8xtoYDGRQPKY3qy" class="li-badge"><!--pnid:YpGKTokfPTRdkIeAQdjTXc-->1/28</span>
+          </div>
+          <div data-page-node-id="5Meo7WtUGunwf8J6ksrNil" class="list-item">
+            <span data-page-node-id="chY8xWGHStTrQzT6Jblv2G" class="li-name"><!--pnid:hnmPs0NDb1N2dlZDpHepzR-->Cmaj7</span>
+            <span data-page-node-id="bvUIrNEP9KumgPR0A8nwDI" class="li-fret"><!--pnid:XpA1aGCGJttw4OGKwUgrrm-->× 3 2 0 0 0</span>
+          </div>
+          <div data-page-node-id="ePPJHmE7GuJ36XFr7XLneq" class="list-item">
+            <span data-page-node-id="0oyToyIdHnxY0mXaFcClMq" class="li-name"><!--pnid:5Vf45ojljWUIFV7DgGSobe-->Dm</span>
+            <span data-page-node-id="sqULqQlcjFzVxbsVtHSUs6" class="li-fret"><!--pnid:BLBaIkmOwFmF72qdPs72TJ-->× × 0 2 3 1</span>
+          </div>
+          <div data-page-node-id="BSzIQBq07yA8M0tKcgkMZ2" class="list-item">
+            <span data-page-node-id="2Ttsmxqv5dYKlcxzcClwA5" class="li-name"><!--pnid:4k8DSN0aD48nw2bWR4JRt4-->Em</span>
+            <span data-page-node-id="3k60zqpYWCSX12NhioGk1U" class="li-fret"><!--pnid:MaShY03RoEr4Q8rQWroOUc-->0 2 2 0 0 0</span>
+          </div>
+          <div data-page-node-id="5pUepnRqlusMasOlOkCPHg" class="list-item">
+            <span data-page-node-id="vvoBR0bLF7fr2GT7QOdzvo" class="li-name"><!--pnid:7UzhF5jTvgqcvNc2LJHTGL-->F</span>
+            <span data-page-node-id="m3NsVrz6UdMe5ldHeskr1O" class="li-fret"><!--pnid:TnZHXILdQ8OBzVi91wH6aZ-->1 3 3 2 1 1</span>
+          </div>
+          <div data-page-node-id="S9usdusKlpygyytldMUkB6" class="list-item">
+            <span data-page-node-id="Y0YsIKKKKfBvAnB6UGKIG9" class="li-name"><!--pnid:aeqpSK5TTZe6qnxQsMmzLG-->G</span>
+            <span data-page-node-id="ooUOM8SumvIfdguZlny4X3" class="li-fret"><!--pnid:0jXxo1zW1jH3x7QItFFRAP-->3 2 0 0 0 3</span>
+          </div>
+          <div data-page-node-id="du3mgRIlpd9ruasPM0N16o" class="list-item">
+            <span data-page-node-id="2GIFXk1PpH2odcqqyAQxMH" class="li-name"><!--pnid:KtDxD6cTdnd6x2MzwLHwYp-->Am</span>
+            <span data-page-node-id="rqge7QRl0bdGuLPXGt1gXh" class="li-fret"><!--pnid:M9g8xJp0j45vTCHe6SIDB1-->× 0 2 2 1 0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div data-page-node-id="W1zwrc7x5wXq8k3gReOng0" class="screen-label"><b data-page-node-id="igqetau2n9lQa7OaOCNTUy"><!--pnid:qHyMic21zWyOZXLWLn995O-->320×240</b><!--pnid:77TOqXtUhVv6rEf81AzgsG--> · 和弦库浏览（一屏 7 个，大字易读）</div>
+  </div>
+
+</div>
+
+<div data-page-node-id="RQI8GHp2PGhwbhlWZdxQgw" class="legend">
+  <b data-page-node-id="Ma6Z1wEeAWZ5IRhaC7fIKa"><!--pnid:zoUOmxbFNsrVnBtMXjfKHL-->设计说明（为什么这么做）</b><br data-page-node-id="NHvggetOaVVU9HKjp31grf"><!--pnid:jyrsxJKLnp8bFT9pauqN9B-->
+  · <b data-page-node-id="6SItcHSi8M4W2Pptw6qXlA"><!--pnid:8eVN38xzB1zBp6k53aEWrM-->方向三重编码</b><!--pnid:1MfbwE09VGSgUoUWuJmTwK-->：偏低=红色+「◀ 紧弦」文字+指针在左；偏高=红色+「松弦 ▶」+指针在右。
+    不用红绿区分（色盲用户看不出），改用<b data-page-node-id="8Ao7xRUPzrrGxkW2ci9ONz"><!--pnid:HiNTmNfSq7pB3aJ9TUTxbR-->箭头方向</b><!--pnid:d0gCJO3VJptVXWgwY5K06m-->和<b data-page-node-id="jEt7612h6J3x8R7GOovYWY"><!--pnid:tzzk7v2Rqh5mHKzwf0ALjv-->文字</b><!--pnid:7CyovQ5ZbPy8OoFRAjbfnx-->。<br data-page-node-id="oQOOf5ABFzrWUm26Fs14or"><!--pnid:gb3M7sgjqPxgiDn9Hhiy6s-->
+  · <b data-page-node-id="Xbe5zdff95M01M9ygfxtv7"><!--pnid:nmlDU5RquXEQA0fco4485h-->准了用绿色</b><!--pnid:JQ1IITGLwX1r1FM5AsE0gt-->：因为「准」是一个明确的达成状态，绿色在这里是辅助，不是唯一信号，
+    同时有「● 准了」文字 + 上升音阶 + 双击振动。<br data-page-node-id="GdwkbIJ52xWg9UKWWyFV1a"><!--pnid:jCzyows9U52ztS1tcGZ7Ii-->
+  · <b data-page-node-id="UVseb41xzZIAohxYfhTALR"><!--pnid:2xCLjz59AW9IKlr2Tuy9mL-->字号极端放大</b><!--pnid:oFzLWNo2NUX2o7wEkwbBMI-->：音名占屏幕 1/3 高度（78px / 240px），低视力用户在 30cm 外也能看清。<br data-page-node-id="mkzVLuTC5JBGehmSnQZlSE"><!--pnid:sAslyIIjEEptE2PIuW0q4k-->
+  · <b data-page-node-id="vzNHEIa4HpA8QNjFmCTyFV"><!--pnid:w1Gql0nnPz4rZXMiKi2MST-->弦位条</b><!--pnid:5qlyn98egFZHtZE77MW0pe-->：底部 6 个格子显示六根弦状态，当前弦高亮黄、已调准变绿，
+    用户随时知道「还剩几根没调」。<br data-page-node-id="LpwFn4kG5O5BQRDUxVsDlS"><!--pnid:XpzfFdnbHn1CgqhLzpMGC9-->
+  · <b data-page-node-id="tweNjZi0h9MLK6Xk9aAkvp"><!--pnid:leX6tYAFr1ViKY5a4kyaAr-->和弦界面用指法图</b><!--pnid:Wx1SrUBArgjh0Z5V6fUZVm-->：小屏上画格栅比列文字更直观，数字标在圆点里表示用哪根手指。<br data-page-node-id="YjNDbJIPIXbiWZ1MHyI5m4"><!--pnid:GWZeLSzUhcWVLdUL3UZYFL-->
+  · <span data-page-node-id="29LyQjrqIH6H2rJOXKdOrt" style="color:#888"><!--pnid:9qPkvdGMFKUtcJSdRmc9ec-->下一步</span><!--pnid:iYbtapCIy1xmCHs0hzFEdL-->：你看完告诉我哪里要改（配色/布局/字号/加什么信息），
+    我按确认后的原型写 LVGL 代码。
+</div>
+
+</body>
+</html>

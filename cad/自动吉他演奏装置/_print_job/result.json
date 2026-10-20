@@ -1,0 +1,77 @@
+{
+    "error_string": "Success.",
+    "export_time": 678,
+    "layer_height": 0.20000000298023224,
+    "plate_index": 0,
+    "prepare_time": 17,
+    "return_code": 0,
+    "sliced_plates": [
+        {
+            "feature_type_times": {
+                "Bottom surface": 324.502197265625,
+                "Bridge": 292.0798645019531,
+                "Custom": 0.8574814200401306,
+                "Inner wall": 332.87567138671875,
+                "Internal solid infill": 519.0162353515625,
+                "Outer wall": 433.8109436035156,
+                "Overhang wall": 43.7216911315918,
+                "Skirt": 8.599074363708496,
+                "Sparse infill": 398.58685302734375,
+                "Top surface": 227.81271362304688,
+                "Travel": 492.357421875,
+                "Undefined": 492.2308654785156
+            },
+            "filament_change_times": 0,
+            "filaments": [
+                {
+                    "filament_id": "GFG00",
+                    "id": 1,
+                    "main_used_g": 20.086650848388672,
+                    "total_used_g": 20.086650848388672
+                }
+            ],
+            "generate_support_material_time": 0,
+            "id": 1,
+            "infill_time": 134,
+            "layer_filament_change": 0,
+            "main_predication": 3073.30224609375,
+            "make_perimeters_time": 294,
+            "obj_cached_cnt": 0,
+            "objects": [
+                {
+                    "bbox": {
+                        "depth": 85.0,
+                        "height": 4.0,
+                        "width": 65.0,
+                        "x": 96.25,
+                        "y": 57.5,
+                        "z": 0.0
+                    },
+                    "id": 49,
+                    "name": "batt_flat.stl",
+                    "triangle_count": 4132
+                },
+                {
+                    "bbox": {
+                        "depth": 74.5,
+                        "height": 6.5,
+                        "width": 55.5,
+                        "x": 38.75001907348633,
+                        "y": 62.7500114440918,
+                        "z": 0.0
+                    },
+                    "id": 38,
+                    "name": "top_flat.stl",
+                    "triangle_count": 6930
+                }
+            ],
+            "sliced_time": 872,
+            "sliced_time_with_cache": 431,
+            "total_predication": 3074.033203125,
+            "triangle_count": 11062,
+            "warning_message": ""
+        }
+    ],
+    "sparse_infill_density": 20.0,
+    "wall_loops": 2
+}

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>压弦 12 路 · 接线与安装卡</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 32px;
+    background: #f4f6fa;
+    font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    color: #1b2430; line-height: 1.55;
+  }
+  .sheet {
+    max-width: 1080px; margin: 0 auto; background: #fff;
+    border-radius: 10px; padding: 30px 34px 38px;
+    box-shadow: 0 2px 14px rgba(20,40,80,.10);
+  }
+  h1 { margin: 0 0 4px; font-size: 25px; color: #10305c; letter-spacing: .5px; }
+  .sub { margin: 0 0 22px; font-size: 13px; color: #6b7a90; border-bottom: 2px solid #e3e9f2; padding-bottom: 12px; }
+  h2 {
+    font-size: 16px; color: #0d47a1; margin: 26px 0 12px;
+    padding-left: 10px; border-left: 4px solid #0d47a1;
+  }
+  h2 small { font-weight: 400; color: #8898ab; font-size: 12px; margin-left: 8px; }
+
+  /* ① 格号地图 */
+  .map { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cell {
+    width: 60px; padding: 7px 0; border-radius: 6px; text-align: center;
+    font-size: 12px; font-weight: 700; color: #fff; line-height: 1.25;
+  }
+  .cell b { display: block; font-size: 15px; }
+  .cell span { font-size: 10px; opacity: .92; font-weight: 400; }
+  .c-strum { background: #2e7dd1; }
+  .c-press { background: #e07b1a; }
+  .legend { margin-top: 10px; font-size: 12px; color: #5a6b80; }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin: 0 5px 0 14px; vertical-align: -1px; }
+  .dot:first-child { margin-left: 0; }
+
+  /* 表格 */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #e8edf4; }
+  th { background: #10305c; color: #fff; font-weight: 600; font-size: 12.5px; letter-spacing: .3px; }
+  th:first-child, td:first-child { border-radius: 0; }
+  tbody tr:nth-child(even) { background: #f7f9fc; }
+  .tag {
+    display: inline-block; padding: 1px 8px; border-radius: 10px;
+    font-size: 11.5px; font-weight: 700; color: #fff;
+  }
+  .t-pca { background: #e07b1a; }
+  .t-pwm { background: #c0392b; }
+  .mono { font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px; color: #0b3d91; font-weight: 700; }
+  .warn {
+    margin-top: 14px; padding: 11px 14px; border-radius: 7px;
+    background: #fff6e8; border-left: 4px solid #e07b1a; font-size: 12.5px; color: #7a4a06;
+  }
+  .warn b { color: #b35400; }
+  .ok { background: #eef7f0; border-left-color: #2e8b57; color: #1f5e3a; }
+  .ok b { color: #1f7a4a; }
+
+  /* SOP */
+  ol.sop { margin: 0; padding-left: 20px; font-size: 13px; }
+  ol.sop li { margin-bottom: 7px; }
+  ol.sop li b { color: #0d47a1; }
+
+  /* 命令 */
+  pre {
+    background: #0f2036; color: #cfe3ff; padding: 14px 16px; border-radius: 7px;
+    font-family: "Cascadia Code", Consolas, monospace; font-size: 12.5px;
+    line-height: 1.7; overflow-x: auto; margin: 0;
+  }
+  pre .cmt { color: #6f8fb5; }
+  pre .hl { color: #ffd479; font-weight: 700; }
+  .two { display: flex; gap: 22px; flex-wrap: wrap; }
+  .two > div { flex: 1 1 420px; }
+  .cap { font-size: 12.5px; font-weight: 700; color: #35507a; margin: 0 0 7px; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .sheet { box-shadow: none; max-width: 100%; padding: 0 6mm; }
+    h2 { page-break-after: avoid; }
+    table, pre, .map { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <h1>压弦 12 路 · 接线与安装卡</h1>
+  <p class="sub">拨云《无障碍吉他改造》｜依据固件 XIAOZHI_PROFILE V6.0（勿手改）｜整理 2026-10-10｜PCA 16 格刚好用满</p>
+
+  <h2>① PCA9685 格号地图 <small>从绿色 V+ 端子那一端起数，第 N 格 = 固件 chN（本板不印数字）</small></h2>
+  <div class="map">
+    <div class="cell c-strum"><b>1</b><span>拨弦</span></div>
+    <div class="cell c-strum"><b>2</b><span>拨弦</span></div>
+    <div class="cell c-strum"><b>3</b><span>拨弦</span></div>
+    <div class="cell c-strum"><b>4</b><span>拨弦</span></div>
+    <div class="cell c-strum"><b>5</b><span>拨弦</span></div>
+    <div class="cell c-strum"><b>6</b><span>拨弦</span></div>
+    <div class="cell c-press"><b>7</b><span>压弦</span></div>
+    <div class="cell c-press"><b>8</b><span>压弦</span></div>
+    <div class="cell c-press"><b>9</b><span>压弦</span></div>
+    <div class="cell c-press"><b>10</b><span>压弦</span></div>
+    <div class="cell c-press"><b>11</b><span>压弦</span></div>
+    <div class="cell c-press"><b>12</b><span>压弦</span></div>
+    <div class="cell c-press"><b>13</b><span>压弦</span></div>
+    <div class="cell c-press"><b>14</b><span>压弦</span></div>
+    <div class="cell c-press"><b>15</b><span>压弦</span></div>
+    <div class="cell c-press"><b>16</b><span>压弦</span></div>
+  </div>
+  <div class="legend">
+    <span class="dot c-strum"></span>第 1~6 格 = 拨弦 6 路（每弦 1 个，MG90S）
+    <span class="dot c-press"></span>第 7~16 格 = 压弦 10 路（MG996R）
+  </div>
+
+  <div class="warn">
+    <b>⚠️ 别按"弦 1、弦 2…"顺序插！</b> 固件把通道打散了：弦 1 和弦 4 的品12组舵机<b>不走 PCA</b>（走 GPIO40 / GPIO39 直驱），所以 PCA 那 10 格是"跳着"对应弦的 —— <b>严格照下面的格号插</b>，  插错不会报错，只会某根弦按错位置。
+  </div>
+
+  <h2>①.5 三套编号，别混 <small>实操最容易插错的地方</small></h2>
+  <table>
+    <thead>
+      <tr><th>你嘴里的说法</th><th>实际含义</th><th>落在哪一格</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>PCA「第 N 格」</td><td>固件通道 chN</td><td>物理第 N 格（离 V+ 起数）</td></tr>
+      <tr><td>servo_jog 的 <span class="mono">chord 1</span>（idx1）</td><td>弦 1 <b>品34组</b>舵机</td><td>PCA 第 <b>15</b> 格</td></tr>
+      <tr><td>触摸 C 时动的「1 号舵机」</td><td>弦 1 <b>品12组</b>舵机</td><td><span class="tag t-pwm">GPIO40 直驱</span>（不在 PCA）</td></tr>
+      <tr><td>PCA「第 7 格」</td><td>固件通道 ch7</td><td>弦 3 <b>品34组</b>舵机</td></tr>
+    </tbody>
+  </table>
+  <div class="warn">
+    <b>结论：第 7 格 ≠ 你的「1 号舵机」。</b> 第 7 格是 <b>ch7 = 弦 3 品34组</b>。「1 号舵机」这个词本身有歧义、容易错，<b>建议废弃</b> —— 贴标签统一用「<b>弦号 + 品组</b>」（如 <span class="mono">3-品34</span>、<span class="mono">1-品12</span>），或直接在线上贴 PCA 格号（7~16 / G40 / G39）。
+  </div>
+
+  <h2>② 压弦 12 路分工 <small>每弦 2 个舵机：品12组管 1/2 品、品34组管 3/4 品（源码 FRET_OFFSETS 写死）</small></h2>
+
+  <div class="two">
+    <div>
+      <p class="cap">品12组舵机 ch0 —— 正转压 1 品 / 反转压 2 品</p>
+      <table>
+        <thead>
+          <tr><th>弦</th><th>落点</th><th>齿条</th><th>jog idx</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>第 1 弦</td><td><span class="tag t-pwm">GPIO40 直驱</span></td><td>齿条1</td><td class="mono">0</td></tr>
+          <tr><td>第 2 弦</td><td><span class="tag t-pca">PCA 第 13 格</span></td><td>齿条1</td><td class="mono">2</td></tr>
+          <tr><td>第 3 弦</td><td><span class="tag t-pca">PCA 第 9 格</span></td><td>齿条1</td><td class="mono">4</td></tr>
+          <tr><td>第 4 弦</td><td><span class="tag t-pwm">GPIO39 直驱</span></td><td>齿条1</td><td class="mono">6</td></tr>
+          <tr><td>第 5 弦</td><td><span class="tag t-pca">PCA 第 14 格</span></td><td>齿条1</td><td class="mono">8</td></tr>
+          <tr><td>第 6 弦</td><td><span class="tag t-pca">PCA 第 10 格</span></td><td>齿条1</td><td class="mono">10</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <p class="cap">品34组舵机 ch1 —— 正转压 3 品 / 反转压 4 品</p>
+      <table>
+        <thead>
+          <tr><th>弦</th><th>落点</th><th>齿条</th><th>jog idx</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>第 1 弦</td><td><span class="tag t-pca">PCA 第 15 格</span></td><td>齿条3</td><td class="mono">1</td></tr>
+          <tr><td>第 2 弦</td><td><span class="tag t-pca">PCA 第 11 格</span></td><td>齿条3</td><td class="mono">3</td></tr>
+          <tr><td>第 3 弦</td><td><span class="tag t-pca">PCA 第 7 格</span></td><td>齿条3</td><td class="mono">5</td></tr>
+          <tr><td>第 4 弦</td><td><span class="tag t-pca">PCA 第 16 格</span></td><td>齿条3</td><td class="mono">7</td></tr>
+          <tr><td>第 5 弦</td><td><span class="tag t-pca">PCA 第 12 格</span></td><td>齿条3</td><td class="mono">9</td></tr>
+          <tr><td>第 6 弦</td><td><span class="tag t-pca">PCA 第 8 格</span></td><td>齿条3</td><td class="mono">11</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="warn ok">
+    <b>齿条怎么选</b>：三根齿条的齿杆一样长（25~30mm），区别只在"压弦头伸多远"，等差 33mm ≈ 一个品位。<b>齿条1（32mm）= 品12组舵机</b>（压弦头落 1 品）、<b>齿条3（98mm）= 品34组舵机</b>（落 3 品）；齿条2（65mm）是中间档，官方无文字说明。<br>
+    <b>现场 2 分钟判定</b>：舵机先回中 90°，把齿条插进齿轮，看压弦头落在哪一品 —— 落 1 品 → 齿条1；落 3 品 → 齿条3。<b>装错长度的直接表现就是"齿条突出、装不进琴颈"。</b>
+  </div>
+
+  <div class="warn">
+    <b>⚠️ 上下两排是镜像装的</b>：弦 1~3 按压偏移全为正（+40~+60），弦 4~6 全为负（−32~−54）。<b>装反一个，那根弦行程整体反向且不报错。</b>
+  </div>
+
+  <h2>③ 装配顺序 <small>顺序错了舵机齿条必跑偏</small></h2>
+  <ol class="sop">
+    <li>打印件<b>埋 M3×3.5×4 热熔螺母</b>（不埋螺丝锁不紧）。</li>
+    <li>舵机<b>只给信号 + 5V 通电，回中 90°</b>（不装负载）。</li>
+    <li><b>在停住的 90° 状态</b>下，套齿轮、插齿条 —— 齿轮齿条是在中立位啮合的。</li>
+    <li>螺丝<b>对角分次</b>拧紧，别一次锁死（会把舵机壳压变形卡死齿）。</li>
+    <li>螺丝<b>夹胶块</b>把和弦段夹到琴上 —— 零打孔、不改琴。</li>
+    <li>上电扫全 24 点，看有没有"该动的没动"（装反 / 装错齿条在这一步露出来）。</li>
+  </ol>
+
+  <div class="warn ok">
+    <b>★ 怎么让舵机回中 90°（三种办法，按方便程度排）</b>
+    <ol style="margin:7px 0 0;padding-left:20px;">
+      <li><b>舵机测试仪</b>（最快，独立供电、不依赖板子）：舵机 3P 插头插上 → 测试仪接 5V → 若是自动扫描模式先切<b>手动</b> → 旋钮转到<b>中间刻度</b> → 舵机停住不动即 90°。对线序：橙/黄 = 信号 S、红 = +、棕 = −。</li>
+      <li><b>走系统</b>（前提 PCA 已接通）：<span class="mono">systemctl stop guitar</span> → <span class="mono">python3 servo_jog.py angle 90</span>（18 路一起回中，最干净）。</li>
+      <li><b>小智板 USB ASCII</b>：CH340 口 115200 连上发 <span class="mono">ALL 90</span>（详见 32 号笔记第六节）。</li>
+    </ol>
+    ⚠️ 装齿轮齿条时尽量<b>保持通电</b> —— 断电后舵机没力矩，会被齿条顶偏。
+  </div>
+
+  <h2>④ 逐路点动验证 <small>泰山派跑，走 UART3@921600</small></h2>
+<pre><span class="cmt"># 先全部回中 90°，再一路一路点（每路 90→70→110→90）</span>
+python3 servo_jog.py angle 90
+
+<span class="cmt"># 品12组 6 路（管 1/2 品），一次点一路：</span>
+python3 servo_jog.py <span class="hl">chord 0</span>   <span class="cmt"># 弦1 品12组 → GPIO40 直驱</span>
+python3 servo_jog.py <span class="hl">chord 2</span>   <span class="cmt"># 弦2 品12组 → PCA 第13格</span>
+python3 servo_jog.py <span class="hl">chord 4</span>   <span class="cmt"># 弦3 品12组 → PCA 第9格</span>
+python3 servo_jog.py <span class="hl">chord 6</span>   <span class="cmt"># 弦4 品12组 → GPIO39 直驱</span>
+python3 servo_jog.py <span class="hl">chord 8</span>   <span class="cmt"># 弦5 品12组 → PCA 第14格</span>
+python3 servo_jog.py <span class="hl">chord 10</span>  <span class="cmt"># 弦6 品12组 → PCA 第10格</span>
+
+<span class="cmt"># 品34组 6 路（管 3/4 品）：</span>
+python3 servo_jog.py <span class="hl">chord 1</span>   <span class="cmt"># 弦1 品34组 → PCA 第15格</span>
+python3 servo_jog.py <span class="hl">chord 3</span>   <span class="cmt"># 弦2 品34组 → PCA 第11格</span>
+python3 servo_jog.py <span class="hl">chord 5</span>   <span class="cmt"># 弦3 品34组 → PCA 第7格</span>
+python3 servo_jog.py <span class="hl">chord 7</span>   <span class="cmt"># 弦4 品34组 → PCA 第16格</span>
+python3 servo_jog.py <span class="hl">chord 9</span>   <span class="cmt"># 弦5 品34组 → PCA 第12格</span>
+python3 servo_jog.py <span class="hl">chord 11</span>  <span class="cmt"># 弦6 品34组 → PCA 第8格</span>
+
+<span class="cmt"># 想一次全点：</span>
+python3 servo_jog.py chord        <span class="cmt"># 12 路依次点一遍</span></pre>
+
+  <div class="warn">
+    <b>接线三条硬规矩</b>：① 绿色端子孔小，用<b>杜邦线引线分流</b>（单根进孔、孔外绞接，绞 6~8 圈并上锡）；② 舵机<b>棕线（GND）必须到公共地</b>，漏了这根绝对不动；③ 上电状态<b>不许插拔舵机</b>。
+  </div>
+
+  <h2>⑤ 舵机编号总表 <small>2026-10-10 15:33 定案 · 列向已确认：最左列（5/6）= 第 1 弦</small></h2>
+  <table>
+    <thead>
+      <tr><th>舵机</th><th>弦</th><th>角色</th><th>齿条</th><th>接线落点</th><th>点名 idx</th></tr>
+    </thead>
+    <tbody>
+      <tr><td class="mono">5</td><td>第 1 弦</td><td>品12组（品 1/2）</td><td>齿条1</td><td><span class="tag t-pwm">GPIO40 直驱</span></td><td class="mono">0</td></tr>
+      <tr><td class="mono">6</td><td>第 1 弦</td><td>品34组（品 3/4）</td><td>齿条3</td><td><span class="tag t-pca">PCA 第 15 格</span></td><td class="mono">1</td></tr>
+      <tr><td class="mono">3</td><td>第 2 弦</td><td>品12组</td><td>齿条1</td><td><span class="tag t-pca">PCA 第 13 格</span></td><td class="mono">2</td></tr>
+      <tr><td class="mono">4</td><td>第 2 弦</td><td>品34组</td><td>齿条3</td><td><span class="tag t-pca">PCA 第 11 格</span></td><td class="mono">3</td></tr>
+      <tr><td class="mono">1</td><td>第 3 弦</td><td>品12组</td><td>齿条1</td><td><span class="tag t-pca">PCA 第 9 格</span></td><td class="mono">4</td></tr>
+      <tr><td class="mono">2</td><td>第 3 弦</td><td>品34组</td><td>齿条3</td><td><span class="tag t-pca">PCA 第 7 格</span></td><td class="mono">5</td></tr>
+      <tr><td class="mono">7</td><td>第 4 弦</td><td>品12组</td><td>齿条1</td><td><span class="tag t-pwm">GPIO39 直驱</span></td><td class="mono">6</td></tr>
+      <tr><td class="mono">8</td><td>第 4 弦</td><td>品34组</td><td>齿条3</td><td><span class="tag t-pca">PCA 第 16 格</span></td><td class="mono">7</td></tr>
+      <tr><td class="mono">9</td><td>第 5 弦</td><td>品12组</td><td>齿条1</td><td><span class="tag t-pca">PCA 第 14 格</span></td><td class="mono">8</td></tr>
+      <tr><td class="mono">10</td><td>第 5 弦</td><td>品34组</td><td>齿条3</td><td><span class="tag t-pca">PCA 第 12 格</span></td><td class="mono">9</td></tr>
+      <tr><td class="mono">11</td><td>第 6 弦</td><td>品12组</td><td>齿条1</td><td><span class="tag t-pca">PCA 第 10 格</span></td><td class="mono">10</td></tr>
+      <tr><td class="mono">12</td><td>第 6 弦</td><td>品34组</td><td>齿条3</td><td><span class="tag t-pca">PCA 第 8 格</span></td><td class="mono">11</td></tr>
+    </tbody>
+  </table>
+  <div class="warn ok">
+    <b>怎么来的</b>：列向已确认（最左列 5/6 = 弦 1，向右依次 弦2 → 弦6）；列内<b>奇数 = 品12组 ch0、偶数 = 品34组 ch1</b>；齿条 = 奇配齿条1 / 偶配齿条3。弦↔PCA 格来自固件 XIAOZHI_PROFILE（弦 1 与弦 4 的品12组不走 PCA，走 GPIO40/39 直驱）。
+  </div>
+  <div class="warn">
+    <b>⏳ 只剩支架上琴朝向这一件事</b>：<b>上 2 排</b>（奇数舵机压的那两排）必须对着琴的 <b>品 1、2</b>（靠琴头那一端）。装反 = 压错品位，齿条还会顶到琴颈。装上去目视对一下就行。
+  </div>
+
+  <h2>⑤.2 5号 / 7号 走小智板，不是泰山派 <small>Z 问"舵机5是要合并然后插到泰山派40？" —— 三处都要纠正</small></h2>
+  <div class="warn">
+    <b>❌ 不是泰山派，是小智板（ESP32-S3）。</b> <span class="mono">G40 / G39</span> 是小智板<b>右侧排针的丝印</b>（自上而下 <span class="mono">… G42 G41 G40 G39 G38 …</span>），<b>泰山派的 40PIN 上根本没有这两个信号脚</b>。
+    <br>⚠️ <b>正踩着一个陷阱</b>：泰山派<b>脚 39 在这块板是 GND</b>，小智板 <b>G39 却是舵机信号</b> —— 两块板的"39"完全不是一回事。<br>
+    ⚠️ 也<b>不是"泰山派第 40 脚"</b> —— 脚 40 是本板 GPIO3_B4，与舵机无关。
+  </div>
+  <table>
+    <thead><tr><th>舵机的线</th><th>接哪</th><th>做法</th></tr></thead>
+    <tbody>
+      <tr><td><b>橙（信号）</b></td><td><b>5号 → 小智板 G40</b><br><b>7号 → 小智板 G39</b></td><td>一根 <b>公-母杜邦线</b>：公针插进舵机 3P 插头的信号孔，母头套小智板排针。<b>两根各走各的</b></td></tr>
+      <tr><td><b>红（+5V）</b></td><td><b>5V 母线</b>（PCA 绿端子右侧 = V+）</td><td>与另外 16 个舵机同一根 5V，引线分流</td></tr>
+      <tr><td><b>棕（GND）</b></td><td><b>GND 母线</b></td><td>★★ 漏了这根 = 舵机绝对不动，先查它</td></tr>
+    </tbody>
+  </table>
+  <h2>⑤.3 5号 / 7号 的 3P 线怎么拆接入板 <small>Z 问"5 舵机不是有 3 个颜色的线吗，怎么接入小智"</small></h2>
+  <div class="warn">
+    <b>☠️ 千万不要把整个 3P 插头往小智板上怼。</b> 三个原因：<br>
+    ① 3P 塑料壳是<b>连体</b>的，套一个针会同时压到旁边两根针；<br>
+    ② 更要命 —— <b>红线接到板上 = 把舵机动力灌进板子</b>（MG996R 堵转 1.5~2.5A，板载 3V3/5V 稳压器当场烧）；<br>
+    ③ 板的 3V3 排针只供逻辑，带不动舵机。<br>
+    ⇒ <b>只有"橙（信号）"这一根允许上板，红与棕一律并到母线。</b>
+  </div>
+  <table>
+    <thead><tr><th>线色</th><th>去哪</th><th>怎么走</th></tr></thead>
+    <tbody>
+      <tr><td><b>橙</b>（信号）</td><td>小智板 <b>G40</b>（5号）／<b>G39</b>（7号）</td><td>公-母杜邦转接：<b>母头套板上 G40 针</b> → <b>公针插进舵机 3P 插头里"橙线那一孔"</b></td></tr>
+      <tr><td><b>红</b>（+5V）</td><td><b>5V 母线</b>（PCA 绿端子右 = V+）</td><td>引线分流：单根杜邦进端子孔，孔外与母线绞 6~8 圈并上锡</td></tr>
+      <tr><td><b>棕</b>（GND）</td><td><b>GND 母线</b>（或就近插小智板 GND 针）</td><td>同上；★ 漏了这根舵机<b>绝对不动</b></td></tr>
+    </tbody>
+  </table>
+  <div class="warn ok">
+    <b>3P 头怎么处理 —— 选一种</b>
+    <ol style="margin:7px 0 0;padding-left:20px;">
+      <li><b>转接（不改舵机线，最省事）</b>：拿一根<b>公-母杜邦线</b> —— 母头套小智板 <span class="mono">G40</span> 排针，公针插到舵机 3P 插头里<b>橙线那一格</b>（端子孔位通常在一端）。红/棕另用线并到母线。</li>
+      <li><b>退针（最干净，线不打结）</b>：用小一字螺丝刀挑起 3P 塑壳里橙线端子的<b>金属卡扣</b>，把橙线整根退出来 → 套上单孔母壳（或热缩绝缘）→ 直接套小智板 G40。红/棕同样退出来并母线。</li>
+    </ol>
+    ⚠️ 两种都必须做到：<b>红/棕绝不碰小智板</b>；<b>先接信号+地、最后上 5V</b>；<b>不许带电插拔</b>。
+  </div>
+
+  <div class="warn">
+    <b>❓"GND 母线不是被小智和 PCA 占用了吗？" —— GND 不是一根独占的线，是一张"网"。</b><br>
+    全系统<b>所有 GND 必须连通成同一个节点</b>，所以接入点可以有<b>很多个</b>，不存在"占满"：小智板 GND 针 ↔ PCA GND ↔ 电源 − ↔ 各舵机棕线，只要<b>最终都连到同一个地</b>就行。<br>
+    <b>就近接入点（挑最近的用）</b>：
+    <ul style="margin:6px 0 0;padding-left:20px;">
+      <li>小智板<b>另一列排针（与 3V3 / 5V 同列）的 GND 针</b> —— 最省事</li>
+      <li>小智板<b>右列末尾的 GND 针</b></li>
+      <li>PCA 排针那 6 针里的 <b>GND 针</b></li>
+      <li>PCA 绿色端子的 <b>左侧（GND 格）</b> —— 已有一根电源 − 时用<b>引线分流</b>再加</li>
+    </ul>
+    ⚠️ 已被占用的那几处（UART 的地、电源−）都在<b>同一张网</b>上，不代表"满了"——GND 是要<b>尽量多连</b>、不是要省着用。
+  </div>
+
+  <h2>⑤.4 两路直驱并排速查 <small>5号 vs 7号 —— 接线与点动命令一模一样，只差信号针</small></h2>
+  <table>
+    <thead><tr><th></th><th>5 号舵机</th><th>7 号舵机</th></tr></thead>
+    <tbody>
+      <tr><td><b>是哪根</b></td><td>第 1 弦 · 品12组（品 1/2）</td><td>第 4 弦 · 品12组（品 1/2）</td></tr>
+      <tr><td><b>橙（信号）</b></td><td>小智板 <span class="mono">G40</span></td><td>小智板 <span class="mono">G39</span></td></tr>
+      <tr><td><b>红（+5V）</b></td><td>5V 母线（PCA 绿端子右）</td><td>5V 母线（PCA 绿端子右）</td></tr>
+      <tr><td><b>棕（GND）</b></td><td>GND（小智板 GND 针 / PCA GND）</td><td>GND（同上）</td></tr>
+      <tr><td><b>USB 点动</b></td><td><span class="mono">PWM 0 30 → 0 150 → 0 90</span></td><td><span class="mono">PWM 1 30 → 1 150 → 1 90</span></td></tr>
+      <tr><td><b>servo_jog</b></td><td><span class="mono">chord 0</span></td><td><span class="mono">chord 6</span></td></tr>
+    </tbody>
+  </table>
+  <div class="warn">
+    <b>唯一的区别就是那一根橙线：</b>5 号去 <span class="mono">G40</span>、7 号去 <span class="mono">G39</span>（两针在小智板右侧排针上<b>紧挨着</b>）。红、棕两根完全一样，都并到母线。
+    <br>⚠️ 别把两根橙线插到同一个针上——插一起就是"两根弦永远同角度"。
+  </div>
+
+  <h2>⑥ 拨弦 6 路 <small>全部走 PCA · 占 1~6 格 · 每弦 1 个（MG90S）—— 补完这节，18 路就齐了</small></h2>
+  <div class="warn ok">
+    <b>一句话记住分区</b>：<b>离 V+ 最近的 6 格（1~6）= 拨弦；再往远的 10 格（7~16）= 压弦。</b><br>
+    拨弦<b>没有直驱</b>——6 个全部插 PCA。<b>唯一走直驱的两路（5号 / 7号）都属于压弦。</b>
+  </div>
+  <table>
+    <thead><tr><th>拨弦 idx</th><th>管哪根弦</th><th>PCA 格（= 固件 ch）</th><th>USB 点动命令</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">0</td><td>第 1 弦</td><td><span class="tag t-pca">PCA 第 2 格</span></td><td class="mono">PCA 2 30 → 2 150 → 2 90</td></tr>
+      <tr><td class="mono">1</td><td>第 2 弦</td><td><span class="tag t-pca">PCA 第 4 格</span></td><td class="mono">PCA 4 …</td></tr>
+      <tr><td class="mono">2</td><td>第 3 弦</td><td><span class="tag t-pca">PCA 第 6 格</span></td><td class="mono">PCA 6 …</td></tr>
+      <tr><td class="mono">3</td><td>第 4 弦</td><td><span class="tag t-pca">PCA 第 1 格</span></td><td class="mono">PCA 1 …</td></tr>
+      <tr><td class="mono">4</td><td>第 5 弦</td><td><span class="tag t-pca">PCA 第 3 格</span></td><td class="mono">PCA 3 …</td></tr>
+      <tr><td class="mono">5</td><td>第 6 弦</td><td><span class="tag t-pca">PCA 第 5 格</span></td><td class="mono">PCA 5 …</td></tr>
+    </tbody>
+  </table>
+  <div class="warn">
+    <b>线怎么走（和压弦一样的三根）</b>：<b>橙（信号）→ 该格排针</b>；<b>红（+5V）→ 5V 母线</b>；<b>棕（GND）→ GND 母线</b>。<br>
+    <b>规律</b>：1~6 格里是"跳着"排的 —— <span class="mono">2 · 4 · 6 · 1 · 3 · 5</span>（= 弦 1~6），不是顺着 1、2、3。<b>照弦序顺插必错</b>。
+  </div>
+  <div class="warn">
+    <b>⚠️ 两个待实测</b>：① <b>"idx 0~5 = 弦 1~6 顺序"是固件推断</b>（笔记 32 待确认 #5）—— 现场点名定死；② 拨弦是<b>拨片上抬/下压</b>两个角度（`servo_config.csv` 的 `strum_angles_N`），不是压弦那种"正反压品"。<br>
+    <b>机械提醒</b>：拨弦舵机带<b>拨片夹具</b>，拨片前后位置可调，用螺丝固定；回调角度时先 `ALL 90` 让全部归位。
+  </div>
+
+  <h2>⑦ 三根线的"汇合"规则 <small>Z 问"橙色线和棕色线不是要接入到不同的线汇合吗？"</small></h2>
+  <div class="warn ok">
+    <b>一句话：橙色线永远不汇合，只有红色和棕色汇合。</b>
+  </div>
+  <table>
+    <thead><tr><th>线</th><th>能不能汇合</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><b>橙（信号）</b></td><td><b>❌ 绝对不能</b></td><td>每一路是<b>独立 PWM</b>。并成一根 = 两个舵机<b>永远同角度</b>，一起动、一起错，<b>还不报错</b>。18 路 = 18 根独立信号</td></tr>
+      <tr><td><b>红（+5V）</b></td><td>✅ 能</td><td>全部并进<b>同一根 5V 母线</b>（PCA 绿端子右 = V+）</td></tr>
+      <tr><td><b>棕（GND）</b></td><td>✅ 能</td><td>全部并进<b>同一张地网</b>（"网"不是"线"，接入点可以有很多个）</td></tr>
+    </tbody>
+  </table>
+  <div class="warn">
+    <b>★ 而且分两种情况 —— 大部分舵机你根本不用自己动手汇合：</b>
+    <table style="margin:8px 0 0;">
+      <thead><tr><th>哪一路</th><th>怎么接</th><th>红/棕要不要手动并</th></tr></thead>
+      <tbody>
+        <tr><td><b>插 PCA 的 16 路</b><br>（压弦 10 个 + 拨弦 6 个）</td><td><b>整根 3P 头直接插进格子</b> —— 一格三针 = GND / V+ / S，物理位置一一对应<br><span class="cmt">3P 塑壳有防呆，方向反了插不进；能插进去就是对的</span></td><td><b>❌ 不用</b><br>板内 16 格的 V+ 全部连通到绿端子右、GND 全部连通到绿端子左 —— <b>插进格子就等于已经汇合了</b>，绿色端子再接 5V 电源即可</td></tr>
+        <tr><td><b>走直驱的 2 路</b><br>（5号 → G40 / 7号 → G39）</td><td><b>必须拆成三根分开走</b>（小智板上没有 3P 座）</td><td><b>✅ 必须</b><br>红 → 5V 母线、棕 → GND 母线，只有橙上板</td></tr>
+      </tbody>
+    </table>
+    <b>⇒ 所以：插 PCA 的 10 个压弦 + 6 个拨弦，一律"整头直插"，别拆线、别自己绞红棕线。</b> 只有 5 号、7 号那两个才需要拆线并母线。
+  </div>
+  <div class="warn ok">
+    <b>回头看你说的"11 号 / 12 号很烫，它们在绿端子那边"</b> —— 11 号（弦6·品12组）该插 <span class="mono">第 10 格</span>、12 号（弦6·品34组）该插 <span class="mono">第 8 格</span>，<b>这俩离绿端子不算近</b>（第 1 格最近）。<br>
+    <b>要你确认一件事：11 号和 12 号的橙色信号线，实际插在第几格（从绿端子那端数）？</b> 如果落进了<b>靠绿端子的 1~6 格</b>，那就是插错区了（1~6 是拨弦专用），固件会拿拨弦角度去推压弦齿条 → 顶死 → 堵转发烫。
+  </div>
+
+</div>
+</body>
+</html>

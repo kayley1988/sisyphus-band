@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}AI 设置 - 自动吉他演奏系统{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="fas fa-robot" style="color:var(--accent)"></i> AI 语音设置</h1>
+    <p>配置语音唤醒和对话引擎</p>
+</div>
+
+<div class="card-grid" style="grid-template-columns:1fr 1fr;">
+    <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fas fa-microphone"></i> 唤醒设置</div></div>
+        <div class="form-group">
+            <label>唤醒词</label>
+            <select class="form-control" id="wake-word"></select>
+        </div>
+        <div class="form-group">
+            <label>唤醒方式</label>
+            <select class="form-control" id="wake-method">
+                <option value="voice">语音唤醒</option>
+                <option value="button">按键说话 (PTT)</option>
+            </select>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fas fa-brain"></i> 引擎选择</div></div>
+        <div class="form-group">
+            <label>语音识别引擎 (ASR)</label>
+            <select class="form-control" id="asr-engine">
+                <option value="whisper">Whisper RKNN（推荐）</option>
+                <option value="vosk">Vosk 离线识别</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>语音合成引擎 (TTS)</label>
+            <select class="form-control" id="tts-engine">
+                <option value="default">Edge-TTS（在线）</option>
+                <option value="espeak">eSpeak（离线）</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><div class="card-title"><i class="fas fa-key"></i> API 密钥</div></div>
+    <div class="form-group">
+        <label>DeepSeek API Key</label>
+        <div style="display:flex;gap:8px;">
+            <input type="password" class="form-control" id="deepseek-api-key" placeholder="sk-..." autocomplete="off" style="flex:1;">
+            <button class="btn btn-outline" onclick="toggleKeyVisibility()" style="white-space:nowrap;"><i id="key-eye" class="fas fa-eye"></i></button>
+        </div>
+        <small id="deepseek-key-hint" class="text-secondary">加载中...</small>
+    </div>
+    <button class="btn btn-primary" onclick="saveDeepseekKey()"><i class="fas fa-save"></i> 保存密钥</button>
+</div>
+
+<div class="card">
+    <div class="card-header"><div class="card-title"><i class="fas fa-heartbeat"></i> AI 状态</div></div>
+    <div id="ai-status-display" class="text-sm text-secondary">
+        加载中...
+    </div>
+    <div class="mt-4 flex gap-2">
+        <button class="btn btn-primary" onclick="saveAIConfig()"><i class="fas fa-save"></i> 保存设置</button>
+        <button class="btn btn-outline" onclick="restartAI()"><i class="fas fa-sync"></i> 重启 AI</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let aiLoadStartTime = Date.now();
+let aiLoadTimedOut = false;
+
+function loadAIConfig() {
+    fetch('/api/ai/config')
+        .then(r => r.json())
+        .then(d => {
+            const el = document.getElementById('ai-status-display');
+
+            // 情况1：AI 模块未加载
+            if (!d.available) {
+                el.innerHTML = '<span class="badge badge-danger">AI 模块未加载</span>';
+                return;
+            }
+
+            // 情况2：AI 不可用（软件/硬件条件缺失）
+            if (d.ai_available === false || d.status.state === 'UNAVAILABLE') {
+                const errMsg = d.status.error || '未知原因';
+                el.innerHTML = `
+                    <div class="badge badge-danger" style="margin-bottom:8px;">⚠️ 语音助手不可用</div>
+                    <div class="text-sm text-secondary">${escapeHtml(errMsg)}</div>
+                    <div class="text-xs text-secondary mt-2">其他系统功能不受影响，可正常使用</div>
+                `;
+                return;
+            }
+
+            // 情况3：加载超时（超过 30 秒仍在 LOADING）
+            if (d.status.state === 'LOADING' && Date.now() - aiLoadStartTime > 30000) {
+                aiLoadTimedOut = true;
+                el.innerHTML = `
+                    <div class="badge badge-warning" style="margin-bottom:8px;">⏳ AI 加载超时</div>
+                    <div class="text-sm text-secondary">模型加载超过 30 秒，可能存在问题</div>
+                    <button class="btn btn-outline btn-sm mt-2" onclick="aiLoadStartTime=Date.now();aiLoadTimedOut=false;loadAIConfig();">
+                        <i class="fas fa-redo"></i> 重试
+                    </button>
+                `;
+                return;
+            }
+
+            // 情况4：正在加载（正常首次启动）
+            if (d.status.state === 'LOADING' && !aiLoadTimedOut) {
+                el.innerHTML = '<span class="badge badge-info">⏳ AI 模型加载中，请稍候...</span>';
+                return;
+            }
+
+            // 情况5：一切正常，渲染完整 UI
+            // 填充唤醒词列表
+            const sel = document.getElementById('wake-word');
+            sel.innerHTML = (d.wake_words || ['小爱同学']).map(w =>
+                `<option value="${escapeHtml(w)}" ${w === d.config.wake_word ? 'selected' : ''}>${escapeHtml(w)}</option>`
+            ).join('');
+            document.getElementById('wake-method').value = d.config.wake_method || 'voice';
+            document.getElementById('asr-engine').value = d.config.asr_engine || 'whisper';
+            document.getElementById('tts-engine').value = d.config.tts_engine || 'default';
+
+            document.getElementById('ai-status-display').innerHTML = `
+                <div class="flex gap-4 flex-wrap">
+                    <span>状态: <span class="badge ${d.active ? 'badge-success' : 'badge-warning'}">${d.status.state || 'IDLE'}</span></span>
+                    <span>唤醒词: <strong style="color:var(--accent)">${escapeHtml(d.config.wake_word)}</strong></span>
+                    <span>唤醒: ${d.config.wake_method === 'voice' ? '🎤 语音' : '🔘 按键'}</span>
+                    <span>ASR: ${d.config.asr_engine}</span>
+                    <span>TTS: ${d.config.tts_engine}</span>
+                </div>
+                ${d.status.reply_text ? `<div class="mt-2" style="color:var(--accent)">回复: ${escapeHtml(d.status.reply_text)}</div>` : ''}
+            `;
+        });
+}
+
+function saveAIConfig() {
+    const data = {
+        wake_word: document.getElementById('wake-word').value,
+        wake_method: document.getElementById('wake-method').value,
+        asr_engine: document.getElementById('asr-engine').value,
+        tts_engine: document.getElementById('tts-engine').value,
+    };
+    fetch('/api/ai/config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) showToast('设置已保存，AI 将重启', 'success');
+        else showToast('保存失败', 'error');
+    })
+    .catch(() => showToast('保存失败', 'error'));
+}
+
+function restartAI() {
+    const data = { wake_method: document.getElementById('wake-method').value };
+    fetch('/api/ai/config', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(d => {
+        showToast('AI 重启中...', 'info');
+        setTimeout(loadAIConfig, 5000);
+    });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ---- DeepSeek API Key 管理 ----
+function loadDeepseekKeyStatus() {
+    fetch('/api/ai/deepseek-key-status')
+        .then(r => r.json())
+        .then(d => {
+            const hint = document.getElementById('deepseek-key-hint');
+            const input = document.getElementById('deepseek-api-key');
+            if (d.configured) {
+                hint.innerHTML = '状态: <span style="color:var(--success)">● 已配置</span> (' + escapeHtml(d.hint) + ')';
+                input.placeholder = d.hint;
+            } else {
+                hint.innerHTML = '状态: <span style="color:var(--danger)">○ 未配置</span>';
+                input.placeholder = 'sk-...';
+            }
+        });
+}
+
+function saveDeepseekKey() {
+    const input = document.getElementById('deepseek-api-key');
+    const key = input.value.trim();
+    if (!key) {
+        showToast('请输入 API Key', 'warning');
+        return;
+    }
+    fetch('/api/ai/deepseek-key-status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({api_key: key})
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            showToast('API Key 已保存', 'success');
+            input.value = '';
+            loadDeepseekKeyStatus();
+        } else {
+            showToast(d.error || '保存失败', 'error');
+        }
+    })
+    .catch(() => showToast('保存失败', 'error'));
+}
+
+function toggleKeyVisibility() {
+    const input = document.getElementById('deepseek-api-key');
+    const icon = document.getElementById('key-eye');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+loadDeepseekKeyStatus();
+loadAIConfig();
+setInterval(loadAIConfig, 10000);
+</script>
+{% endblock %}

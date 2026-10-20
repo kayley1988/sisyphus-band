@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>舵机校准 · 指板 + 左右模式 + 拨弦</title>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --line:#21262d; --line2:#30363d;
+  --ink:#c9d1d9; --hi:#f0f6fc; --dim:#8b949e; --dim2:#484f58;
+  --orange:#f78166; --blue:#58a6ff; --green:#3fb950; --yellow:#d29922; --red:#f85149; --purple:#d2a8ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+     font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 16px 46px}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+h1{font-size:1.42em;font-weight:700;margin:0;color:var(--hi)}
+h1 span{color:var(--orange)}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.sv-save{padding:9px 18px;border-radius:9px;border:none;background:var(--orange);color:#0d1117;
+         font-weight:700;font-size:.9em;cursor:pointer;white-space:nowrap}
+.sv-save:active{transform:translateY(1px) scale(.98)}
+.pill{font-size:.78em;padding:5px 12px;border-radius:20px;background:rgba(88,166,255,.14);
+      color:var(--blue);border:1px solid var(--line2);white-space:nowrap}
+.pill.busy{background:rgba(210,153,34,.16);color:var(--yellow)}
+.pill.err{background:rgba(248,81,73,.16);color:var(--red)}
+
+.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel);
+         border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:20px}
+.toolbar button{padding:6px 12px;border-radius:8px;border:1px solid var(--line2);background:#21262d;
+                color:var(--ink);cursor:pointer;font-size:.82em;font-family:inherit}
+.toolbar button:hover{background:var(--line2)}
+.toolbar button.gr{background:#238636;border-color:#238636;color:#fff;font-weight:600}
+.toolbar button.red{background:rgba(248,81,73,.14);border-color:var(--red);color:var(--red)}
+.toolbar button.on{background:var(--orange);border-color:var(--orange);color:#0d1117;font-weight:700}
+.toolbar .sep{width:1px;height:22px;background:var(--line2);margin:0 3px}
+.toolbar .lbl{font-size:.78em;color:var(--dim)}
+.toolbar input[type=range]{width:150px;accent-color:var(--blue)}
+.toolbar .val{font-size:.95em;font-weight:700;color:var(--blue);min-width:44px;text-align:center}
+
+.sv-section{background:var(--panel);border-radius:14px;border:1px solid var(--line);margin-bottom:20px;overflow:hidden}
+.sv-section-header{padding:13px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sv-section-header h2{font-size:1.02em;font-weight:600;margin:0;color:var(--hi)}
+.sv-badge{font-size:.7em;padding:3px 10px;border-radius:10px;background:rgba(247,129,102,.15);color:var(--orange);white-space:nowrap}
+.sv-section-body{padding:18px 20px 20px}
+.sv-tip{font-size:.79em;color:var(--dim);margin-bottom:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+
+
+
+/* ── 拨弦：数字 + 滑条（与左右模式同一套视觉）── */
+.str-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.str-steps{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:.74em;color:var(--dim)}
+.str-steps .sp{display:flex;gap:3px}
+.str-steps .sp button{padding:3px 10px;border-radius:6px;border:1px solid var(--line2);background:#21262d;
+                      color:var(--ink);font-size:.85em;cursor:pointer}
+.str-steps .sp button.active{background:var(--line2);border-color:var(--orange);color:var(--orange);font-weight:700}
+.str-steps .rv{margin-left:auto;font-weight:700;color:var(--blue)}
+.lr-side input[type=range].lo{accent-color:#f78166}
+.lr-side input[type=range].hi{accent-color:#58a6ff}
+
+.logbox{background:#0f2036;color:#cfe3ff;font-family:Consolas,monospace;font-size:12px;line-height:1.6;
+        border-radius:10px;padding:10px 12px;height:140px;overflow:auto;white-space:pre-wrap;margin-top:8px}
+/* ── 左右模式 ── */
+.lr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.lr-card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.lr-card:hover{border-color:var(--line2)}
+.lr-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}
+.lr-title{font-weight:700;color:var(--hi);font-size:.95em}
+.lr-tag{font-size:.68em;color:var(--blue);background:rgba(88,166,255,.12);border:1px solid var(--line2);padding:2px 8px;border-radius:10px;white-space:nowrap}
+.lr-pair{display:flex;gap:10px}
+.lr-side{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:center}
+.lr-side .cap{font-size:.72em;color:var(--dim)}
+.lr-side .big{font-size:1.55em;font-weight:800;color:var(--hi);line-height:1.25}
+.lr-side input[type=range]{width:100%;accent-color:var(--blue);margin:2px 0}
+.lr-side .offs{font-size:.7em;color:var(--dim2)}
+.mini-btns{display:flex;gap:4px;margin-top:7px}
+.mini-btns button{flex:1;padding:4px 0;border-radius:7px;border:1px solid var(--line2);background:#21262d;color:var(--ink);font-size:.72em;cursor:pointer;white-space:nowrap}
+.mini-btns button:hover{background:var(--line2)}
+.mini-btns button.accent{background:var(--orange);border-color:var(--orange);color:#0d1117;font-weight:700}
+.lr-null{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:.74em;color:var(--dim)}
+.lr-null input[type=range]{flex:1;accent-color:var(--orange)}
+.lr-null button{padding:3px 8px;border-radius:6px;border:1px solid var(--line2);background:#21262d;color:var(--ink);font-size:.86em;cursor:pointer}
+.lr-null button:hover{background:var(--line2)}
+.lr-null .nv{min-width:56px;text-align:center;font-weight:700;color:var(--orange)}
+
+.link{font-size:.78em;color:var(--dim);margin:16px 0 4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>🎸 舵机校准 · <span>左右模式 · 指板 · 拨弦</span></h1>
+    <div class="hdr-r">
+      <button class="sv-save" onclick="saveAll()">💾 保存全部配置</button>
+      <span class="pill" id="st">就绪</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button onclick="go('/api/home')">🏠 全部归位</button>
+    <button class="gr" onclick="go('/api/enable')">⚡ 使能</button>
+    <button class="red" onclick="go('/api/release')">✋ 释放力矩</button>
+    <span class="sep"></span>
+    <span class="lbl">整组</span>
+    <button onclick="go('/api/all?ang=90')">全 90°</button>
+    <button onclick="go('/api/all?ang=0')">全 0°</button>
+    <button onclick="go('/api/all?ang=180')">全 180°</button>
+    <span class="sep"></span>
+    <span class="lbl">走马灯</span>
+    <button onclick="chase()">▶ 点名</button>
+    <button onclick="stopChase()">■ 停</button>
+    <span class="sep"></span>
+    <span class="lbl" title="归位/停靠姿态角：只影响「一键归位」和装机器件，不参与播放时的按压运算">装机角</span>
+    <input type="range" id="homeAng" min="60" max="120" step="1" value="90"
+           oninput="homePreview(this.value)" onchange="homeCommit(this.value)">
+    <span class="val" id="homeAngVal">89°</span>
+    <span class="val" id="homeAngWarn" style="display:none;color:#B42318;font-weight:700;font-size:11.5px;"></span>
+    <span class="val" id="homeAngNote" style="opacity:.55;">（归位用 · 与按压零点无关）</span>
+    <label class="lbl" style="cursor:pointer"><input type="checkbox" id="linkDrive" checked> 调整时联动舵机</label>
+  </div>
+
+  <!-- ═══ 左右模式 — 同一舵机 · 相对两品并排 ═══ -->
+  <div class="sv-section">
+    <div class="sv-section-header">
+      <h2>⇔ 左右模式 — 同一舵机 · 相对两品并排调</h2>
+      <span class="sv-badge">一个压弦舵机 = 齿条左/右两个相对位置</span>
+    </div>
+    <div class="sv-section-body">
+      <div class="sv-tip">
+        💡 每张卡片 = <b style="color:var(--hi)">一片舵机</b>。左边是它压 <b>品1/品3</b> 的位置，右边是压
+        <b>品2/品4</b> 的位置（齿轮相对的两个方向）。拖滑条 / ◀▶ 微调，舵机立刻动；
+        中间<b style="color:var(--orange)">零点</b>一动两边跟着走 —— 把两侧都调到"收平"就是它。
+        <b style="color:var(--blue)">对称</b>=把右侧行程对齐左侧，找规律先用它。
+      </div>
+      <div class="lr-grid" id="lrGrid"></div>
+    </div>
+  </div>
+
+  <!-- ═══ 拨弦 — 数字滑条 ═══ -->
+  <div class="sv-section">
+    <div class="sv-section-header">
+      <h2>🎛️ 拨弦舵机行程 — 数字滑条</h2>
+      <span class="sv-badge">strum_angles · 6 弦各 2 个触发点</span>
+    </div>
+    <div class="sv-section-body">
+      <div class="sv-tip">
+        💡 每张卡片 = <b style="color:var(--hi)">一路拨弦舵机</b>。左边是
+        <b style="color:var(--orange)">低点</b>（拨片起始位），右边是
+        <b style="color:var(--blue)">高点</b>（拨片扫出位）。
+        拖滑条 / ◀ ▶ 微调，舵机立刻动 —— 不用点"选点"再调，两个数字一直都在。
+      </div>
+      <div class="str-grid" id="strGrid"></div>
+    </div>
+  </div>
+
+  <div class="link">操作日志</div>
+  <div class="logbox" id="log"></div>
+</div>
+
+<script>
+// ═══════════ 数据层 ═══════════
+const stringNames = ['1弦 (E)','2弦 (A)','3弦 (D)','4弦 (G)','5弦 (B)','6弦 (e)'];
+const stringNotes = ['E4','A3','D3','G3','B2','E2'];
+const k = [0,2,4,6,8,10];
+
+let dataNull  = [0,0,0,0,0,0,0,0,0,0,0,0];
+let dataPress = [[45,50,55,60],[42,48,53,58],[40,46,51,56],[-38,-44,-49,-54],[-35,-41,-47,-52],[-32,-38,-44,-50]];
+let dataStrum = [[70,130],[60,120],[55,130],[77,145],[30,95],[75,155]];
+let chordMap = [], strumMap = [];
+// 按压/松弦「零位角」——必须与后端 PRESS_ZERO、固件 chord_engine.cpp、
+// 上位机 servo_controller.py 的 zero 保持一致（三处都是 90）。改这里等于改硬件行为。
+const PRESS_ZERO = 90;
+// 装机角 = 归位/停靠姿态角（一键归位、装机器件用）——**与按压/零点完全无关**。
+// 主程序「一键归位」esp32_home_servos() 发的是 12 路统一平角 = 本值，不加零点偏移。
+let homeAngle = 89;
+let dirty = false;
+let cfgRetries = 0;
+
+let strumStep = {};
+for (let s=0;s<6;s++){ strumStep[s]=1; }
+
+// ═══════════ 工具 ═══════════
+function log(m){
+  const el=document.getElementById('log');
+  const t=new Date().toTimeString().slice(0,8);
+  el.textContent='['+t+'] '+m+'\n'+el.textContent;
+  if(el.textContent.length>6000) el.textContent=el.textContent.slice(0,6000);
+}
+function setSt(s,busy,err){
+  const el=document.getElementById('st');
+  el.textContent=s; el.className='pill'+(err?' err':(busy?' busy':''));
+}
+function linkOn(){ return document.getElementById('linkDrive').checked; }
+// ── file:// 直开检测：本地文件打不开板子接口，直接短路掉所有请求，避免刷屏 CORS 报错 ──
+const API_OFF = !(location.protocol==='http:'||location.protocol==='https:');
+let apiWarned = false;
+function apiBlocked(){
+  if(!API_OFF) return false;
+  if(!apiWarned){
+    apiWarned = true;
+    log('本页是用本地文件（file://）打开的，浏览器不允许访问板子接口。');
+    log('请改用 http://127.0.0.1:5002/ 打开（或双击 open_panel.bat）。');
+    setSt('请用 http 打开',false,true);
+    showFileBanner();
+  }
+  return true;
+}
+function showFileBanner(){
+  if(document.getElementById('fileBanner')) return;
+  const d=document.createElement('div');
+  d.id='fileBanner';
+  d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:9999;background:#f85149;color:#fff;'
+    +'padding:11px 16px;font-size:14px;font-weight:700;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.5)';
+  d.innerHTML='⚠ 当前是本地文件模式（file://），无法连接板子。请改用 '
+    +'<a href="http://127.0.0.1:5002/" style="background:#fff;color:#f85149;padding:2px 8px;'
+    +'border-radius:5px;text-decoration:none;font-weight:800">打开 http://127.0.0.1:5002/</a>'
+    +' 或双击目录里的 open_panel.bat（它会自动转发端口并唤起面板）';
+  document.body.appendChild(d);
+}
+function getJSON(u,opt){ if(apiBlocked()) return Promise.resolve({ok:false,err:'file:// 模式，未发出请求'});
+  const o=Object.assign({},opt||{});
+  return fetch(u,o).then(r=>r.json()); }
+function postJSON(u,body){
+  if(apiBlocked()) return Promise.resolve({ok:false,err:'file:// 模式，未发出请求'});
+  return fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json());
+}
+function say(j,okMsg){
+  if(j && j.ok){ log(okMsg); setSt('就绪',false,false); }
+  else { log('ERR '+(j&&(j.err||j.error||JSON.stringify(j)))); setSt('出错',false,true); }
+  return j;
+}
+
+// ═══════════ 左右模式：同一舵机 · 相对两品并排 ═══════════
+// 与后端 servo_panel.py:angles_for_press() 同款公式（含弦4-6 镜像 SWAP），
+// 基准角 = PRESS_ZERO(90) + 零点偏移 —— 与固件/播放器同一口径，**与装机角无关**。
+function pressCalc(s,f){                       // s:0..5  f:1..4
+  let dir,pi;
+  if(f===1){dir=1;pi=0;} else if(f===2){dir=-1;pi=1;}
+  else if(f===3){dir=1;pi=2;} else {dir=-1;pi=3;}
+  if(s>=3){                                    // 弦4-6 机械反转：1↔2、3↔4 品互换
+    if(f===1){dir=-1;pi=1;} else if(f===2){dir=1;pi=0;}
+    else if(f===3){dir=-1;pi=3;} else {dir=1;pi=2;}
+  }
+  const ch=f<=2?2*s:2*s+1;
+  const base=PRESS_ZERO+dataNull[ch];
+  const p=dataPress[s][pi];
+  return {dir:dir,pi:pi,ch:ch,base:base,p:p,ang:Math.max(0,Math.min(180,base+dir*p))};
+}
+function lrFrets(g){ return g===0?[1,2]:[3,4]; }
+function buildLrAll(){
+  let h='';
+  for(let s=0;s<6;s++) for(let g=0;g<2;g++) h+=buildLrCard(s,g);
+  document.getElementById('lrGrid').innerHTML=h;
+  for(let s=0;s<6;s++) for(let g=0;g<2;g++) lrNullApply(s,g,PRESS_ZERO+dataNull[2*s+g]);
+}
+function buildLrCard(s,g){
+  const ch=2*s+g, tag=chordMap[ch]||('#'+(ch+1));
+  const fr=lrFrets(g), fL=fr[0], fR=fr[1];
+  const lo=(PRESS_ZERO-45).toFixed(1), hi=(PRESS_ZERO+45).toFixed(1);
+  const side=(f,cap,accent)=>{
+    return `<div class="lr-side">
+      <div class="cap">${cap}</div>
+      <div class="big" id="lr-ang-${s}-${f}">—</div>
+      <input type="range" id="lr-sl-${s}-${f}" min="0" max="180" step="0.5"
+             oninput="lrSet(${s},${f},this.value)">
+      <div class="offs" id="lr-off-${s}-${f}">—</div>
+      <div class="mini-btns">
+        <button onclick="lrNudge(${s},${f},-1)">◀</button>
+        <button onclick="lrNudge(${s},${f},1)">▶</button>
+        <button onclick="lrGoto(${s},${f},90)">90</button>
+        <button class="${accent?'accent':''}" onclick="lrGoto(${s},${f})">试压</button>
+      </div>
+    </div>`;
+  };
+  return `<div class="lr-card" id="lr-card-${s}-${g}">
+    <div class="lr-head">
+      <span class="lr-title">弦${s+1}·${g===0?'品12组':'品34组'}</span>
+      <span class="lr-tag">${tag} · 零点 <b id="lr-nullv-${s}-${g}">—</b></span>
+    </div>
+    <div class="lr-pair">
+      ${side(fL,'◀ '+(g===0?'品1':'品3'),true)}
+      ${side(fR,(g===0?'品2':'品4')+' ▶',false)}
+    </div>
+    <div class="lr-null">
+      <span>零点</span>
+      <button onclick="lrNullNudge(${s},${g},-1)">◀</button>
+      <input type="range" id="lr-nl-${s}-${g}" min="${lo}" max="${hi}" step="0.5"
+             oninput="lrNullSet(${s},${g},this.value)">
+      <button onclick="lrNullNudge(${s},${g},1)">▶</button>
+      <span class="nv" id="lr-null-${s}-${g}">—</span>
+      <button onclick="lrHome(${s},${g})">归位</button>
+      <button onclick="lrSym(${s},${g})">对称</button>
+    </div>
+  </div>`;
+}
+// 给定目标角 → 反算压深 offset 并刷新该侧显示
+function lrApplyAng(s,f,ang,updSlider){
+  const c=pressCalc(s,f);
+  let p=c.dir*(ang-c.base);
+  p=Math.max(-90,Math.min(90,Math.round(p*10)/10));
+  dataPress[s][c.pi]=p; dirty=true;
+  const a2=Math.max(0,Math.min(180,c.base+c.dir*p));
+  if(updSlider) document.getElementById('lr-sl-'+s+'-'+f).value=a2;
+  document.getElementById('lr-ang-'+s+'-'+f).textContent=a2.toFixed(1)+'°';
+  document.getElementById('lr-off-'+s+'-'+f).textContent='压深 '+(p>=0?'+':'')+p.toFixed(1)+'°';
+  return a2;
+}
+function lrSet(s,f,v){ lrApplyAng(s,f,parseFloat(v),false); lrDrive(s,f); }
+function lrNudge(s,f,d){ lrApplyAng(s,f,pressCalc(s,f).ang+d*0.5,true); lrDrive(s,f); }
+function lrGoto(s,f,ang){
+  const a=(ang==null)?pressCalc(s,f).ang:ang;
+  lrApplyAng(s,f,a,true); lrDrive(s,f);
+  log('左右模式：'+stringNames[s]+' '+(f<=2?'品'+f:'品'+f)+' → '+a.toFixed(1)+'°');
+}
+// 零点变化：p 不变、两侧角度一起平移 → 刷新整卡
+function lrNullApply(s,g,baseAng){
+  const ch=2*s+g;
+  dataNull[ch]=Math.max(-45,Math.min(45,Math.round((baseAng-PRESS_ZERO)*10)/10));
+  dirty=true;
+  const fr=lrFrets(g);
+  for(let i=0;i<2;i++){
+    const f=fr[i], c=pressCalc(s,f);
+    document.getElementById('lr-sl-'+s+'-'+f).value=c.ang;
+    document.getElementById('lr-ang-'+s+'-'+f).textContent=c.ang.toFixed(1)+'°';
+    document.getElementById('lr-off-'+s+'-'+f).textContent='压深 '+(c.p>=0?'+':'')+c.p.toFixed(1)+'°';
+  }
+  const v=dataNull[ch];
+  document.getElementById('lr-null-'+s+'-'+g).textContent=(v>=0?'+':'')+v.toFixed(1)+'°';
+  document.getElementById('lr-nullv-'+s+'-'+g).textContent=(v>=0?'+':'')+v.toFixed(1)+'°';
+}
+function lrNullSet(s,g,v){ lrNullApply(s,g,parseFloat(v)); lrNullDrive(s,g); }
+function lrNullNudge(s,g,d){
+  lrNullApply(s,g,PRESS_ZERO+dataNull[2*s+g]+d*0.5); lrNullDrive(s,g);
+}
+// ── 驱动（260ms 防抖，尊重「调整时联动舵机」）──
+let lrTimer={};
+function lrDrive(s,f){
+  if(!linkOn()) return;
+  const key=s+'-'+f;
+  if(lrTimer[key]) clearTimeout(lrTimer[key]);
+  lrTimer[key]=setTimeout(function(){
+    const c=pressCalc(s,f);
+    getJSON('/api/move?tag='+encodeURIComponent(chordMap[c.ch])+'&ang='+c.ang)
+      .then(function(j){ if(j&&j.ok) setSt('就绪',false,false); else if(j&&j.ok===false) showReject(j); });
+  },260);
+}
+function lrNullDrive(s,g){
+  if(!linkOn()) return;
+  const key='n'+s+'-'+g;
+  if(lrTimer[key]) clearTimeout(lrTimer[key]);
+  lrTimer[key]=setTimeout(function(){
+    const ch=2*s+g;
+    getJSON('/api/move?tag='+encodeURIComponent(chordMap[ch])+'&ang='+(PRESS_ZERO+dataNull[ch]));
+  },260);
+}
+function lrHome(s,g){
+  const ch=2*s+g, ang=PRESS_ZERO+dataNull[ch];   // 与 lrNullDrive / 后端 base_angles 同精度（0.1°）
+  getJSON('/api/move?tag='+encodeURIComponent(chordMap[ch])+'&ang='+ang)
+    .then(function(j){ say(j,'归位：'+(j.tag||chordMap[ch])+' → '+j.ang+'°'); });
+}
+function lrSym(s,g){
+  const fr=lrFrets(g), fL=fr[0], fR=fr[1];
+  const L=pressCalc(s,fL);
+  dataPress[s][pressCalc(s,fR).pi]=dataPress[s][L.pi];   // dir 相反 → offset 相同即角度对称
+  dirty=true;
+  lrNullApply(s,g,PRESS_ZERO+dataNull[2*s+g]);
+  lrDrive(s,fL); lrDrive(s,fR);
+  log('对称：弦'+(s+1)+' '+(g===0?'品2对齐品1':'品4对齐品3')+'，两侧偏移同为 '+(L.p>=0?'+':'')+L.p.toFixed(1)+'°');
+}
+
+// ═══════════ 拨弦：数字 + 滑条（左右模式同一副卡面）═══════════
+function strCard(s){
+  const tag=strumMap[s]||('#'+(s+1));
+  const st=strumStep[s]||1;
+  const side=(w,cap,cls)=>{
+    const col=(w===0?'var(--orange)':'var(--blue)');
+    return `<div class="lr-side">
+      <div class="cap" style="color:${col};font-weight:700">${cap}</div>
+      <div class="big" id="str-ang-${s}-${w}" style="color:${col}">—</div>
+      <input type="range" class="${cls}" id="str-sl-${s}-${w}" min="0" max="180" step="0.5"
+             oninput="strSet(${s},${w},this.value)">
+      <div class="offs" id="str-off-${s}-${w}">—</div>
+      <div class="mini-btns">
+        <button onclick="strNudge(${s},${w},-1)">◀</button>
+        <button onclick="strNudge(${s},${w},1)">▶</button>
+        <button onclick="strGoto(${s},${w},90)">90</button>
+        <button class="accent" onclick="strForce(${s},${w})">试拨</button>
+      </div>
+    </div>`;
+  };
+  return `<div class="lr-card">
+    <div class="lr-head">
+      <span class="lr-title">第${s+1}弦</span>
+      <span class="lr-tag">${stringNotes[s]} · ${tag}</span>
+    </div>
+    <div class="lr-pair">
+      ${side(0,'低点 · 起始位','lo')}
+      ${side(1,'高点 · 扫出位','hi')}
+    </div>
+    <div class="str-steps">
+      <span>步长</span>
+      <span class="sp">
+        <button class="${st===1?'active':''}" onclick="strStepSet(${s},1)">1</button>
+        <button class="${st===5?'active':''}" onclick="strStepSet(${s},5)">5</button>
+      </span>
+      <span class="rv" id="str-range-${s}">行程 —</span>
+    </div>
+  </div>`;
+}
+function buildStrAll(){
+  document.getElementById('strGrid').innerHTML=Array.from({length:6},(_,s)=>strCard(s)).join('');
+  for(let s=0;s<6;s++){ strPaint(s,0); strPaint(s,1); }
+}
+function strPaint(s,w){
+  const v=dataStrum[s][w];
+  const el=document.getElementById('str-ang-'+s+'-'+w);
+  if(el) el.textContent=v.toFixed(1)+'°';
+  const sl=document.getElementById('str-sl-'+s+'-'+w);
+  if(sl && Math.abs(parseFloat(sl.value)-v)>0.01) sl.value=v;
+  const of=document.getElementById('str-off-'+s+'-'+w);
+  if(of) of.textContent='中点90°偏移 '+((v-90)>=0?'+':'')+(v-90).toFixed(1)+'°';
+  const rg=document.getElementById('str-range-'+s);
+  if(rg) rg.textContent='行程 '+(dataStrum[s][1]-dataStrum[s][0]).toFixed(1)+'°';
+}
+// 低点必须小于高点（留 1° 间隔），超了自动夹住
+function strSet(s,w,v,noDrive){
+  v=Math.round(parseFloat(v)*10)/10;
+  if(isNaN(v)) return;
+  if(w===0) v=Math.max(0,   Math.min(v, dataStrum[s][1]-1));
+  else      v=Math.min(180, Math.max(v, dataStrum[s][0]+1));
+  dataStrum[s][w]=v; dirty=true;
+  strPaint(s,0); strPaint(s,1);
+  if(!noDrive) strDrive(s,w);
+}
+function strNudge(s,w,d){ strSet(s,w, dataStrum[s][w] + d*(strumStep[s]||1)); }
+function strGoto(s,w,ang){ strSet(s,w,ang); }
+function strStepSet(s,st){ strumStep[s]=st; buildStrAll(); }
+// 拖动中实时驱动（260ms 防抖，尊重「调整时联动舵机」）
+let strTimer={};
+function strDrive(s,w){
+  if(!linkOn()) return;
+  const key=s+'-'+w;
+  if(strTimer[key]) clearTimeout(strTimer[key]);
+  strTimer[key]=setTimeout(function(){
+    if(!strumMap[s]) return;
+    getJSON('/api/strum_drive?idx='+(s+1)+'&ang='+dataStrum[s][w])
+      .then(function(j){ if(j&&j.ok) setSt('就绪',false,false); else if(j&&j.ok===false) showReject(j); });
+  },260);
+}
+// 「试拨」按钮：不看联动开关，立即驱动
+function strForce(s,w){
+  getJSON('/api/strum_drive?idx='+(s+1)+'&ang='+dataStrum[s][w])
+    .then(j=>say(j,'拨弦'+(s+1)+'·'+(w===0?'低点':'高点')+' → '+(j.tag||'')+' '+j.ang+'°'));
+}
+
+// ═══════════ 装机角 ═══════════
+function homePreview(v){
+  document.getElementById('homeAngVal').textContent=v+'°';
+}
+let homeTimer=null;
+document.getElementById('homeAng').addEventListener('input',function(){
+  const v=this.value;
+  if(homeTimer) clearTimeout(homeTimer);
+  homeTimer=setTimeout(function(){
+    getJSON('/api/home_preview?ang='+v).then(j=>{ if(j.ok) log('装机角预览 '+v+'°'); else if(j&&j.ok===false) showReject(j); });
+  },260);
+});
+function homeCommit(v){
+  homeAngle=parseFloat(v);
+  dirty=true;
+  log('装机角暂存 '+v+'°（点「保存全部配置」才写盘）');
+}
+
+// ═══════════ 走马灯 ═══════════
+let stopFlag=false;
+function stopChase(){ stopFlag=true; log('请求停止走马灯'); }
+async function chase(){
+  stopFlag=false;
+  const ts=await getJSON('/api/tiles').then(j=>j.tiles||[]);
+  log('=== 走马灯开始，共 '+ts.length+' 路 ===');
+  for(let i=0;i<ts.length;i++){
+    if(stopFlag) break;
+    const t=ts[i];
+    setSt('点名 '+(i+1)+'/'+ts.length+' '+t.name+' ('+t.tag+')',true);
+    await fetch('/api/wiggle?tag='+encodeURIComponent(t.tag)+'&swing=30&dwell=0.3&base='+t.base).then(r=>r.json());
+    await new Promise(r=>setTimeout(r,90));
+  }
+  log('=== 走马灯结束 ===');
+  setSt('就绪',false);
+}
+
+// ═══════════ 通用按钮 ═══════════
+function showReject(j){
+  const m=(j&&(j.msg||j.err))||'已被拒绝';
+  log('⛔ '+m);
+  setSt(m,false,true);
+  showBanBanner(m);
+}
+let banTimer=null;
+function showBanBanner(msg){
+  let d=document.getElementById('banBanner');
+  if(!d){
+    d=document.createElement('div');
+    d.id='banBanner';
+    d.style.cssText='position:fixed;left:0;right:0;top:0;z-index:9998;background:#d29922;color:#0d1117;'
+      +'padding:10px 16px;font-size:13.5px;font-weight:700;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.5)';
+    document.body.appendChild(d);
+  }
+  d.textContent='⏸ '+msg;
+  if(banTimer) clearTimeout(banTimer);
+  banTimer=setTimeout(function(){ if(d&&d.parentNode) d.parentNode.removeChild(d); },6000);
+}
+function go(url){
+  setSt('执行 '+url,true);
+  getJSON(url).then(j=>{
+    if(j && j.ok===false){ log(url+' ⛔ '+((j.msg||j.err||''))); showReject(j); }
+    else { log(url+' -> '+JSON.stringify(j)); setSt('就绪',false,false); }
+  }).catch(e=>{ log('网络错 '+e); setSt('网络错',false,true); });
+}
+
+// ═══════════ 保存 / 载入 ═══════════
+function saveAll(){
+  setSt('保存中…',true);
+  postJSON('/api/cfg',{
+    null_offset:dataNull, strum_angles:dataStrum, press_offsets:dataPress,
+    home_chord_angle:homeAngle
+  }).then(j=>{
+    if(j.ok){
+      dirty=false;
+      log('已保存：csv 写入 '+j.written+' 项；主程序同步 HTTP '+j.main+(j.main===200?' ✅':' ⚠ '+(j.main_body||'')));
+      setSt('已保存',false);
+    }else{ log('保存失败 '+JSON.stringify(j)); setSt('保存失败',false,true); }
+  }).catch(e=>{ log('保存网络错 '+e); setSt('保存失败',false,true); });
+}
+
+function loadCfg(){
+  return getJSON('/api/cfg').then(j=>{
+    if(!j.ok){ log('载入失败 '+(j.err||'')); return; }
+    if(j.null_offset) dataNull=j.null_offset.map(Number);
+    if(j.strum_angles) dataStrum=j.strum_angles.map(r=>[Number(r[0]),Number(r[1])]);
+    if(j.press_offsets) dataPress=j.press_offsets.map(r=>r.map(Number));
+    chordMap=j.chord_map||[]; strumMap=j.strum_map||[];
+    homeAngle=Number(j.home_chord_angle!=null?j.home_chord_angle:90);
+    const hs=document.getElementById('homeAng');
+    hs.value=Math.max(60,Math.min(120,Math.round(homeAngle)));
+    document.getElementById('homeAngVal').textContent=Math.round(homeAngle)+'°';
+    buildStrAll(); buildLrAll();
+    log('已载入配置：home='+homeAngle+'° · 通道 '+chordMap.join('/'));
+  }).catch(e=>{
+    if(cfgRetries<3){
+      cfgRetries++;
+      log('配置接口连不上（'+e+'），1.5s 后重试 '+cfgRetries+'/3 …（当前显示默认值）');
+      setTimeout(loadCfg,1500);
+    }else{
+      log('配置接口连续 3 次连不上，已停在默认值。请检查面板服务/转发后刷新页面。');
+    }
+  });
+}
+
+// 全局错误兜底：任何 JS 报错都打进操作日志，不再"页面无声变空"
+window.onerror=function(msg,src,line){
+  log('JS错误: '+msg+' @line'+line);
+  setSt('页面脚本报错',false,true);
+};
+
+// ═══════════ 启动 ═══════════
+// 关键：先用内置默认值立刻渲染（网络再抖页面也是完整的），配置到了再覆盖
+buildStrAll(); buildLrAll();
+loadCfg().then(()=>{ setSt('就绪',false); });
+setInterval(function(){ if(dirty) setSt('有未保存的改动',false); },3000);
+</script>
+</body>
+</html>
